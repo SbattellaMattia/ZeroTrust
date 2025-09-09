@@ -1,6 +1,6 @@
 services:
 
-
+ #Simula client esterno
  external_client:
   image: alpine:latest
   container_name: external-client
@@ -8,7 +8,7 @@ services:
   networks:
    - external_net
 
-
+ # Bastion host (accesso amministrativo)
  bastion-host:
   image: ubuntu:latest
   container_name: bastion-host
@@ -20,28 +20,55 @@ services:
    - external_net
    - internal_net
   volumes:
-   - ./bastion-host/sshd_config:/etc/ssh/sshd_config:ro
+   - ./bastion-host/sshd_config:/etc/ssh/sshd_config
   command: /usr/sbin/sshd -D
   
-  
+ # Squid Proxy (forward proxy in DMZ)
  squid-proxy:
   image: ubuntu/squid:latest
   container_name: squid-proxy
   ports:
    - "3128:3128"
   networks:
-   - internal_net
+   - dmz_net
   volumes:
-   - ./squid/squid.conf:/etc/squid/squid.conf:ro 
+   - ./squid/squid.conf:/etc/squid/squid.conf
   ulimits:
    nofile:
     soft: "65536"
     hard: "65536"
   command: squid -N -d 1
-  
+
+ # Envoy Proxy (PEP)
+ pep-envoy:
+  image: envoyproxy/envoy:v1.35.1
+  container_name: pep-envoy
+  volumes:
+   - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+  networks:
+   - dmz_net
+   - internal_net
+  ports:
+   - "10000:10000"
+   
+ # OPA (PDP)
+ pdp-opa:
+  image: openpolicyagent/opa:latest
+  container_name: pdp-opa
+  command: run --server --addr=:8181
+  networks:
+   - internal_net
+  ports:
+   - "8181:8181"
+  volumes:
+   - ./opa/policies:/policies
+   
+    
 
 networks:
  external_net:
+  driver: bridge
+ dmz_net:
   driver: bridge
  internal_net:
   driver: bridge
