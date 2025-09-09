@@ -1,0 +1,47 @@
+services:
+
+
+ external_client:
+  image: alpine:latest
+  container_name: external-client
+  command: sh -c "while true; do sleep 3600; done"
+  networks:
+   - external_net
+
+
+ bastion-host:
+  image: ubuntu:latest
+  container_name: bastion-host
+  build:
+   context: ./bastion-host
+  ports:
+   - "2222:22"
+  networks:
+   - external_net
+   - internal_net
+  volumes:
+   - ./bastion-host/sshd_config:/etc/ssh/sshd_config:ro
+  command: /usr/sbin/sshd -D
+  
+  
+ squid-proxy:
+  image: ubuntu/squid:latest
+  container_name: squid-proxy
+  ports:
+   - "3128:3128"
+  networks:
+   - internal_net
+  volumes:
+   - ./squid/squid.conf:/etc/squid/squid.conf:ro 
+  ulimits:
+   nofile:
+    soft: "65536"
+    hard: "65536"
+  command: squid -N -d 1
+  
+
+networks:
+ external_net:
+  driver: bridge
+ internal_net:
+  driver: bridge
