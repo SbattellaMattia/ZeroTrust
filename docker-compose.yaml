@@ -53,16 +53,90 @@ services:
    
  # OPA (PDP)
  pdp-opa:
-  image: openpolicyagent/opa:latest
+  image: openpolicyagent/opa:latest-envoy
   container_name: pdp-opa
-  command: run --server --addr=:8181
+  networks:
+   - dmz_net
+   - internal_net
+  command: >
+   run --server
+   --set=plugins.envoy_ext_authz_grpc.addr=:9191
+   --set=plugins.envoy_ext_authz_grpc.query=data.envoy.authz.allow
+   --bundle /policies
+  volumes:
+   - ./opa/policies:/policies:ro
+  ports:
+   - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
+   
+ internal-service:
+  image: hashicorp/http-echo:0.2.3
+  container_name: internal-service
+  command: ["-text", "hello from internal", "-listen", ":8080"]
+  networks:
+   - internal_net
+   
+   
+
+ # Firewall con nftables
+ #nftables:
+  #image: networkstatic/nftables
+  #container_name: nftables
+  #cap_add:
+   # - NET_ADMIN
+  #networks:
+   #- external_net
+   #- dmz_net
+#   - internal_net
+ # volumes:
+#   - ./nftables/nftables.conf:/etc/nftables.conf
+ # command: ["nft", "-f", "/etc/nftables.conf"]
+
+ # Snort IDS/IPS
+ snort:
+  image: frapsoft/snort
+  container_name: snort
+  cap_add:
+    - NET_ADMIN
+    - NET_RAW
+  networks:
+    - dmz_net
+    - internal_net
+  command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
+  #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
+  volumes:
+    - ./snort/snort.conf:/etc/snort/snort.conf:ro
+
+# Postgres (DBMS interno)
+ postgres:
+  image: postgres:latest
+  container_name: postgres
+  environment:
+   POSTGRES_USER: admin
+   POSTGRES_PASSWORD: supersecret
+   POSTGRES_DB: companydb
   networks:
    - internal_net
   ports:
-   - "8181:8181"
+   - "5432:5432"
   volumes:
-   - ./opa/policies:/policies
-   
+   - ./postgres/data:/var/lib/postgresql/data
+
+# Splunk (SIEM / Log Management)
+ splunk:
+  image: splunk/splunk:latest
+  container_name: splunk
+  environment:
+   SPLUNK_START_ARGS: "--accept-license"
+   SPLUNK_PASSWORD: changeme123
+  ports:
+   - "8000:8000"   # Web UI
+   - "8088:8088"   # HTTP Event Collector
+  networks:
+   - dmz_net
+   - internal_net
+  volumes:
+   - ./splunk/etc:/opt/splunk/etc
+   - ./splunk/var:/opt/splunk/var   
     
 
 networks:
