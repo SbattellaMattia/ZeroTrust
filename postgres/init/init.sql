@@ -1,4 +1,4 @@
--- ./postgres/init/init_trust.sql
+-- ./postgres/init/init.sql
 -- Schema per Trust Score
 
 CREATE SCHEMA IF NOT EXISTS trust;
@@ -58,9 +58,13 @@ ON CONFLICT (username) DO NOTHING;
 DO
 $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'root') THEN
-    CREATE ROLE root LOGIN PASSWORD 'root';
-    GRANT CONNECT ON DATABASE companydb TO root;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'trust_user') THEN
+    CREATE ROLE trust_user LOGIN PASSWORD 'trust_pass';
+    GRANT CONNECT ON DATABASE companydb TO trust_user;
+    GRANT USAGE ON SCHEMA trust TO trust_user;
+    GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA trust TO trust_user;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA trust
+      GRANT SELECT, INSERT, UPDATE ON TABLES TO trust_user;
   END IF;
 END
 $$;

@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 import psycopg2
 import psycopg2.extras
 
-DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/companydb")
+DB_URL = os.getenv("DATABASE_URL", "postgresql://root:root@postgres:5432/companydb")
 T_SCALE_MINUTES = float(os.getenv("T_SCALE_MINUTES", "1440"))
 PORT = int(os.getenv("PORT", "5000"))
 

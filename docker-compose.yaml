@@ -106,7 +106,7 @@ services:
     dockerfile: Dockerfile
   container_name: trust-service
   environment:
-    DATABASE_URL: "postgresql://root:root@postgres:5432/companydb"  #POSTGRES_USER:POSTGRES_PASSWORD@postgres:PORTS/POSTGRES_DB
+    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" #Sono utenti diversi dal root di Postgres
     T_SCALE_MINUTES: "1440"    # default: 1 giorno
     PORT: "5000"
   networks:
