@@ -8,21 +8,31 @@ services:
   networks:
    - external_net
 
- # Bastion host (accesso amministrativo)
+ # Bastion host 
  bastion-host:
-  image: ubuntu:latest
+  image: binlab/bastion
   container_name: bastion-host
-  build:
-   context: ./bastion-host
+  hostname: bastion-host
+  restart: unless-stopped
+  expose:
+    - 22/tcp
   ports:
-   - "2222:22"
-  networks:
-   - external_net
-   - internal_net
+    - 22222:22/tcp
+  environment:
+    PUBKEY_AUTHENTICATION: "true"
+    GATEWAY_PORTS: "false"
+    PERMIT_TUNNEL: "false"
+    X11_FORWARDING: "false"
+    TCP_FORWARDING: "true"
+    AGENT_FORWARDING: "true"
   volumes:
-   - ./bastion-host/sshd_config:/etc/ssh/sshd_config
-  command: /usr/sbin/sshd -D
-  
+    - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
+    - ./bastion-host/ssh:/usr/etc/ssh:rw
+  extra_hosts:
+    - docker-host:172.17.0.1
+  networks:
+    - dmz_net
+
  # Squid Proxy (forward proxy in DMZ)
  squid-proxy:
   image: ubuntu/squid:latest
@@ -74,45 +84,14 @@ services:
   command: ["-text", "hello from internal", "-listen", ":8080"]
   networks:
    - internal_net
-   
-   
-
- # Firewall con nftables
- #nftables:
-  #image: networkstatic/nftables
-  #container_name: nftables
-  #cap_add:
-   # - NET_ADMIN
-  #networks:
-   #- external_net
-   #- dmz_net
-#   - internal_net
- # volumes:
-#   - ./nftables/nftables.conf:/etc/nftables.conf
- # command: ["nft", "-f", "/etc/nftables.conf"]
-
- # Snort IDS/IPS
- snort:
-  image: frapsoft/snort
-  container_name: snort
-  cap_add:
-    - NET_ADMIN
-    - NET_RAW
-  networks:
-    - dmz_net
-    - internal_net
-  command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
-  #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
-  volumes:
-    - ./snort/snort.conf:/etc/snort/snort.conf:ro
 
 # Postgres (DBMS interno)
  postgres:
   image: postgres:latest
   container_name: postgres
   environment:
-   POSTGRES_USER: admin
-   POSTGRES_PASSWORD: supersecret
+   POSTGRES_USER: root
+   POSTGRES_PASSWORD: root
    POSTGRES_DB: companydb
   networks:
    - internal_net
@@ -127,13 +106,17 @@ services:
     dockerfile: Dockerfile
   container_name: trust-service
   environment:
-    DATABASE_URL: "postgresql://admin:supersecret@postgres:5432/companydb"
+    DATABASE_URL: "postgresql://root:root@postgres:5432/companydb"  #POSTGRES_USER:POSTGRES_PASSWORD@postgres:PORTS/POSTGRES_DB
     T_SCALE_MINUTES: "1440"    # default: 1 giorno
     PORT: "5000"
   networks:
     - internal_net
   depends_on:
     - postgres
+
+
+
+#====================== DA CONFIGURARE ======================
 
 # Splunk (SIEM / Log Management)
  splunk:
@@ -151,6 +134,36 @@ services:
   volumes:
    - ./splunk/etc:/opt/splunk/etc
    - ./splunk/var:/opt/splunk/var   
+
+# Snort IDS/IPS
+ snort:
+  image: frapsoft/snort
+  container_name: snort
+  cap_add:
+    - NET_ADMIN
+    - NET_RAW
+  networks:
+    - dmz_net
+    - internal_net
+  command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
+  #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
+  volumes:
+    - ./snort/snort.conf:/etc/snort/snort.conf:ro
+
+
+#Firewall con nftables
+ #nftables:
+  #image: networkstatic/nftables
+  #container_name: nftables
+  #cap_add:
+    #- NET_ADMIN
+  #networks:
+   #- external_net
+   #- dmz_net
+   #- internal_net
+  #volumes:
+   #- ./nftables/nftables.conf:/etc/nftables.conf
+  #command: ["nft", "-f", "/etc/nftables.conf"]
     
 
 networks:
