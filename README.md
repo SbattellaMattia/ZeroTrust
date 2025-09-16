@@ -100,8 +100,9 @@ Questo progetto universitario per il corso di laurea in Ing. Informatica ed Auto
 ## Logging
 
 **Logging / monitoring:** Tutti i passaggi devono essere loggati in modo da poter essere monitorati da `Snort` e `Splunk`. 
-> Nota: La `management-net` serve unicamente per permettere a Splunk di accedere ai file di log. 
-> Nota: Snort è configurato solo in modalità IPS. Ha accesso sia alla `internal net` che all' `external net` in modo da poter analizzare tutto il traffico.
+> Nota: La `management-net` serve unicamente per permettere a Splunk di accedere ai file di log.
+
+> Nota: Snort è configurato solo in modalità IDS. Ha accesso a tutte le reti (`internal_net`, `dmz_net`, `prod_net`, `dev_net`) in modo da poter analizzare il traffico entrante ed uscente.
 
  
 ## Trust Score
