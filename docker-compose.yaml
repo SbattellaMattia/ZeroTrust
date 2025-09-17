@@ -51,7 +51,7 @@ services:
 
  # Envoy Proxy (PEP)
  pep-envoy:
-  build: ./envoy/compose
+  build: ./auth-system/envoy/compose
   container_name: pep-envoy
   # Stranamente envoy non interpreta le variabili d'ambiente :(
   environment:
@@ -59,7 +59,7 @@ services:
       - SERVICE_NAME=app
       - SERVICE_PORT=8080
   volumes:
-   - ./envoy/envoy.yaml:/config/envoy.yaml
+   - ./auth-system/envoy/envoy.yaml:/config/envoy.yaml
   networks:
    - internal_net
   ports:
@@ -80,7 +80,7 @@ services:
    - "--set=decision_logs.console=true"
    - "/policies/policy.rego"
   volumes:
-   - ./opa/policies:/policies:ro
+   - ./auth-system/opa/policies:/policies:ro
   ports:
    - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
    
@@ -106,16 +106,17 @@ services:
   ports:
    - "5432:5432"
   volumes:
-   - ./postgres/data:/var/lib/postgresql/data
-   - ./postgres/init:/docker-entrypoint-initdb.d
+   - ./auth-system/postgres/data:/var/lib/postgresql/data
+   - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
 
  trust-service:
   build:
-    context: ./trust-service
+    context: ./auth-system/trust-service
     dockerfile: Dockerfile
   container_name: trust-service
   environment:
-    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" #Sono utenti diversi dall'admin di Postgres
+    # Utente predisposto, diverso dall'admin di Postgres
+    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" 
     T_SCALE_MINUTES: "1440"    # default: 1 giorno
     PORT: "5000"
   networks:
