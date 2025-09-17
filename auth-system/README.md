@@ -69,5 +69,16 @@ Poiché `10 < 50`, OPA risponde con `allow=false` → Envoy blocca la richiesta 
 > **Nota**: La policy mostrata è puramente a scopo di test e dimostrativo.  
 > Le policy sviluppate in seguito sono molto più articolate e basate su calcoli e metriche avanzate.
 
+## Accorgimenti  
+  ⚠️ **Attenzione**: l’interpolazione delle variabili d'ambiente `${SERVICE_NAME}` e  `${SERVICE_PORT}` in `envoy.yaml` non sempre funziona. Nonostante ciò, essendo passate correttamente nel compose, non da alcun tipo di errore, ma scaturisce in una mancata comunicazione tra pep e pdp. È consigliato utilizzare direttamente il nome del container come host (es. `internal-service:8080`).
+  
+## Fonti e riferimenti
+
+Questa configurazione è stata realizzata prendendo spunto da:
+
+- [Envoy Getting Started Guide](https://github.com/helpfulBadger/envoy_getting_started)  
+- [Open Policy Agent Documentation](https://www.openpolicyagent.org/)  
+- [Envoy Proxy Official Docs](https://www.envoyproxy.io/docs/envoy/latest/)  
+
 
 
