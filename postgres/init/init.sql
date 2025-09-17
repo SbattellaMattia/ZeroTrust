@@ -51,20 +51,32 @@ ON CONFLICT (event_type) DO NOTHING;
 -- Esempio utenti
 INSERT INTO trust.users (username, initial_score, current_score) VALUES
   ('mrossi', 80, 80),
-  ('lbianchi', 80, 80)
+  ('mrhacker', 10, 10)
 ON CONFLICT (username) DO NOTHING;
 
--- Facoltativo: crea un DB role per il Trust Service (user: root)
+-- Creazione DB role e permessi completi
 DO
 $$
+DECLARE
+  r RECORD;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'trust_user') THEN
     CREATE ROLE trust_user LOGIN PASSWORD 'trust_pass';
+
+    -- Connessione e schema
     GRANT CONNECT ON DATABASE companydb TO trust_user;
     GRANT USAGE ON SCHEMA trust TO trust_user;
+
+    -- Permessi su tabelle
     GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA trust TO trust_user;
     ALTER DEFAULT PRIVILEGES IN SCHEMA trust
       GRANT SELECT, INSERT, UPDATE ON TABLES TO trust_user;
+
+    -- Permessi sulle sequence (necessario per SERIAL)
+    FOR r IN SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'trust'
+    LOOP
+      EXECUTE format('GRANT USAGE, SELECT, UPDATE ON SEQUENCE trust.%I TO trust_user', r.sequence_name);
+    END LOOP;
   END IF;
 END
 $$;

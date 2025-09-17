@@ -1,79 +1,56 @@
-admin:
-  access_log_path: /tmp/admin_access.log
-  address:
-    socket_address:
-      address: 0.0.0.0
-      port_value: 9901
-
 static_resources:
   listeners:
-    - name: listener_0
-      address:
+    - address:
         socket_address:
           address: 0.0.0.0
           port_value: 10000
       filter_chains:
-        - filters:
+          - filters:
             - name: envoy.filters.network.http_connection_manager
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                codec_type: auto
                 stat_prefix: ingress_http
-                codec_type: AUTO
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: internal_service
+                    - name: backend
                       domains: ["*"]
                       routes:
-                        - match:
-                            prefix: "/"
-                          route:
-                            cluster: internal_service
+                        - match: { prefix: "/" }
+                          route: { cluster: internal-service }
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      transport_api_version: V3
-                      # usa gRPC: indirizza a cluster opa_cluster
-                      grpc_service:
-                        envoy_grpc:
-                          cluster_name: opa_cluster
                       failure_mode_allow: false
                       with_request_body:
-                        allow_partial_message: true
                         max_request_bytes: 4096
-                        pack_as_bytes: true
+                        allow_partial_message: false
+                      grpc_service:
+                        google_grpc:
+                          target_uri: pdp-opa:9191
+                          stat_prefix: ext_authz
+                        timeout: 2s
                   - name: envoy.filters.http.router
-                    typed_config: 
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-
+                    typed_config: {}
   clusters:
-    - name: internal_service
-      connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      lb_policy: ROUND_ROBIN
+    - name: internal-service
+      connect_timeout: 2s
+      type: STRICT_DNS
+      lb_policy: round_robin
       load_assignment:
-        cluster_name: internal_service
+        cluster_name: internal-service
         endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: internal-service
-                      port_value: 8080
-
-    - name: opa_cluster
-      connect_timeout: 0.25s
-      type: LOGICAL_DNS
-      lb_policy: ROUND_ROBIN
-      # IMPORTANT: gRPC -> HTTP/2
-      http2_protocol_options: {}
-      load_assignment:
-        cluster_name: opa_cluster
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: pdp-opa
-                      port_value: 9191
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: internal-service #${SERVICE_NAME}
+                  port_value: 8080 #${SERVICE_PORT}
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 10001

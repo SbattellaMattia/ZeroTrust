@@ -51,28 +51,34 @@ services:
 
  # Envoy Proxy (PEP)
  pep-envoy:
-  image: envoyproxy/envoy:v1.35.1
+  build: ./envoy/compose
   container_name: pep-envoy
+  # Stranamente envoy non interpreta le variabili d'ambiente :(
+  environment:
+      - DEBUG_LEVEL=debug
+      - SERVICE_NAME=app
+      - SERVICE_PORT=8080
   volumes:
-   - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+   - ./envoy/envoy.yaml:/config/envoy.yaml
   networks:
-   - dmz_net
    - internal_net
   ports:
    - "10000:10000"
+   - "10001:10001"
    
  # OPA (PDP)
  pdp-opa:
   image: openpolicyagent/opa:latest-envoy
   container_name: pdp-opa
   networks:
-   - dmz_net
    - internal_net
-  command: >
-   run --server
-   --set=plugins.envoy_ext_authz_grpc.addr=:9191
-   --set=plugins.envoy_ext_authz_grpc.query=data.envoy.authz.allow
-   --bundle /policies
+  command:
+   - "run"
+   - "--server"
+   - "--log-level=debug"
+   - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+   - "--set=decision_logs.console=true"
+   - "/policies/policy.rego"
   volumes:
    - ./opa/policies:/policies:ro
   ports:
@@ -84,14 +90,16 @@ services:
   command: ["-text", "hello from internal", "-listen", ":8080"]
   networks:
    - internal_net
+  ports:
+   - "8080:8080" 
 
 # Postgres (DBMS interno)
  postgres:
   image: postgres:latest
   container_name: postgres
   environment:
-   POSTGRES_USER: root
-   POSTGRES_PASSWORD: root
+   POSTGRES_USER: admin
+   POSTGRES_PASSWORD: admin
    POSTGRES_DB: companydb
   networks:
    - internal_net
@@ -99,6 +107,7 @@ services:
    - "5432:5432"
   volumes:
    - ./postgres/data:/var/lib/postgresql/data
+   - ./postgres/init:/docker-entrypoint-initdb.d
 
  trust-service:
   build:
@@ -106,11 +115,13 @@ services:
     dockerfile: Dockerfile
   container_name: trust-service
   environment:
-    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" #Sono utenti diversi dal root di Postgres
+    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" #Sono utenti diversi dall'admin di Postgres
     T_SCALE_MINUTES: "1440"    # default: 1 giorno
     PORT: "5000"
   networks:
     - internal_net
+  ports:
+    - "5000:5000"
   depends_on:
     - postgres
 
@@ -149,6 +160,19 @@ services:
   #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
   volumes:
     - ./snort/snort.conf:/etc/snort/snort.conf:ro
+  
+
+ #SOLAMENTE PER DEBUG
+ debug:
+    image: curlimages/curl:latest
+    container_name: debug
+    stdin_open: true
+    tty: true
+    networks:
+      - external_net
+      - dmz_net
+      - internal_net
+    entrypoint: [ "sh" ]
 
 
 #Firewall con nftables
