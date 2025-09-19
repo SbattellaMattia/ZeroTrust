@@ -49,6 +49,9 @@ services:
     hard: "65536"
   command: squid -N -d 1
 
+
+#====================== PARTE INTERNA ======================
+
  # Envoy Proxy (PEP)
  pep-envoy:
   build: ./auth-system/envoy/compose
@@ -62,6 +65,9 @@ services:
    - ./auth-system/envoy/envoy.yaml:/config/envoy.yaml
   networks:
    - internal_net
+   - dmz_net
+   - prod_net
+   - dev_net
   ports:
    - "10000:10000"
    - "10001:10001"
@@ -84,31 +90,7 @@ services:
   ports:
    - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
    
- internal-service:
-  image: hashicorp/http-echo:0.2.3
-  container_name: internal-service
-  command: ["-text", "hello from internal", "-listen", ":8080"]
-  networks:
-   - internal_net
-  ports:
-   - "8080:8080" 
-
-# Postgres (DBMS interno)
- postgres:
-  image: postgres:latest
-  container_name: postgres
-  environment:
-   POSTGRES_USER: admin
-   POSTGRES_PASSWORD: admin
-   POSTGRES_DB: companydb
-  networks:
-   - internal_net
-  ports:
-   - "5432:5432"
-  volumes:
-   - ./auth-system/postgres/data:/var/lib/postgresql/data
-   - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
-
+ #Calcola il livello di fiducia e dialoga con il db
  trust-service:
   build:
     context: ./auth-system/trust-service
@@ -126,6 +108,63 @@ services:
   depends_on:
     - postgres
 
+# Postgres (DBMS interno)
+ postgres:
+  image: postgres:latest
+  container_name: postgres
+  environment:
+   POSTGRES_USER: admin
+   POSTGRES_PASSWORD: admin
+   POSTGRES_DB: companydb
+  networks:
+   - internal_net
+  ports:
+   - "5432:5432"
+  volumes:
+   - ./auth-system/postgres/data:/var/lib/postgresql/data
+   - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
+
+ 
+ #Sito aziendale
+ internal-service:
+  image: hashicorp/http-echo:0.2.3
+  container_name: internal-service
+  command: ["-text", "hello from internal", "-listen", ":8080"]
+  networks:
+   - internal_net
+  ports:
+   - "8080:8080" 
+#====================== HOST INTERNI ======================
+ host_sviluppo:
+  build: ./host
+  container_name: host_sviluppo
+  environment:
+    USER_ID: "devUser1"
+    USER_NAME: "MarcoDev"
+    ORG_UNIT: "sviluppo"
+    NETWORK: "development"
+    ROLE: "developer"
+    DEVICE_ID: "devPc01"
+    # proxy del PEP 
+    HTTP_PROXY: "http://pep-envoy:10000"
+    HTTPS_PROXY: "http://pep-envoy:10000"
+  networks:
+    - dev_net
+
+ host_produzione:
+  build: ./host
+  container_name: host_produzione
+  environment:
+    USER_ID: "prodUser1"
+    USER_NAME: "AnnaProd"
+    ORG_UNIT: "produzione"
+    NETWORK: "production"
+    ROLE: "ops"
+    DEVICE_ID: "prodPc01"
+    HTTP_PROXY: "http://pep-envoy:10000"
+    HTTPS_PROXY: "http://pep-envoy:10000"
+  networks:
+    - prod_net
 
 
 #====================== DA CONFIGURARE ======================
@@ -197,4 +236,8 @@ networks:
  dmz_net:
   driver: bridge
  internal_net:
+  driver: bridge
+ prod_net:
+  driver: bridge
+ dev_net:
   driver: bridge
