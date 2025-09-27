@@ -20,6 +20,42 @@ static_resources:
                         - match: { prefix: "/" }
                           route: { cluster: internal-service }
                 http_filters:
+                  # Filtro OAuth2 → gestisce login automatico
+                  - name: envoy.filters.http.oauth2
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
+                      config:
+                        token_endpoint:
+                          cluster: keycloak
+                          uri: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/token
+                          timeout: 5s
+                        authorization_endpoint: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/auth
+                        redirect_uri: "%REQ(x-forwarded-proto)%://pep-envoy:10000/oauth2/callback"
+                        redirect_path_matcher:
+                          path:
+                            exact: /oauth2/callback
+                        signout_path:
+                          path:
+                            exact: /oauth2/signout
+                        credentials:
+                          client_id: envoy-proxy
+                          token_secret:
+                            name: oauth_token_secret
+                            sds_config:
+                              path: "/etc/envoy/oauth-secrets.yaml"
+                          hmac_secret:
+                            name: oauth_hmac_secret
+                            sds_config:
+                              path: "/etc/envoy/oauth-secrets.yaml"
+                        auth_scopes:
+                          - openid
+                          - profile
+                          - email
+                        forward_bearer_token: true  # Forward del JWT ai servizi upstream
+                
+                  
+
+                  # Autorizzazione delegata a OPA (PDP)  
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
@@ -33,8 +69,25 @@ static_resources:
                           stat_prefix: ext_authz
                         timeout: 2s
                   - name: envoy.filters.http.router
-                    typed_config: {}
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
+    # Cluster Keycloak
+    - name: keycloak
+      type: STRICT_DNS
+      connect_timeout: 2s
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: keycloak
+        endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: keycloak
+                  port_value: 8081
+
+    # Cluster server interno            
     - name: internal-service
       connect_timeout: 2s
       type: STRICT_DNS

@@ -1,243 +1,257 @@
-services:
+    services:
 
- #Simula client esterno
- external_client:
-  image: alpine:latest
-  container_name: external-client
-  command: sh -c "while true; do sleep 3600; done"
-  networks:
-   - external_net
+     #=========================== SOLAMENTE PER DEBUG ========================
+     debug:
+        image: curlimages/curl:latest
+        container_name: debug
+        stdin_open: true
+        tty: true
+        networks:
+          - external_net
+          - dmz_net
+          - internal_net
+        entrypoint: [ "sh" ]
+     #========================================================================
 
- # Bastion host 
- bastion-host:
-  image: binlab/bastion
-  container_name: bastion-host
-  hostname: bastion-host
-  restart: unless-stopped
-  expose:
-    - 22/tcp
-  ports:
-    - 22222:22/tcp
-  environment:
-    PUBKEY_AUTHENTICATION: "true"
-    GATEWAY_PORTS: "false"
-    PERMIT_TUNNEL: "false"
-    X11_FORWARDING: "false"
-    TCP_FORWARDING: "true"
-    AGENT_FORWARDING: "true"
-  volumes:
-    - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
-    - ./bastion-host/ssh:/usr/etc/ssh:rw
-  extra_hosts:
-    - docker-host:172.17.0.1
-  networks:
-    - dmz_net
+     
+     #Simula client esterno
+     external_client:
+      image: alpine:latest
+      container_name: external-client
+      command: sh -c "while true; do sleep 3600; done"
+      networks:
+       - external_net
 
- # Squid Proxy (forward proxy in DMZ)
- squid-proxy:
-  image: ubuntu/squid:latest
-  container_name: squid-proxy
-  ports:
-   - "3128:3128"
-  networks:
-   - dmz_net
-  volumes:
-   - ./squid/squid.conf:/etc/squid/squid.conf
-  ulimits:
-   nofile:
-    soft: "65536"
-    hard: "65536"
-  command: squid -N -d 1
+     # Bastion host 
+     bastion-host:
+      image: binlab/bastion
+      container_name: bastion-host
+      hostname: bastion-host
+      restart: unless-stopped
+      expose:
+        - 22/tcp
+      ports:
+        - 22222:22/tcp
+      environment:
+        PUBKEY_AUTHENTICATION: "true"
+        GATEWAY_PORTS: "false"
+        PERMIT_TUNNEL: "false"
+        X11_FORWARDING: "false"
+        TCP_FORWARDING: "true"
+        AGENT_FORWARDING: "true"
+      volumes:
+        - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
+        - ./bastion-host/ssh:/usr/etc/ssh:rw
+      extra_hosts:
+        - docker-host:172.17.0.1
+      networks:
+        - dmz_net
+
+     # Squid Proxy (forward proxy in DMZ)
+     squid-proxy:
+      image: ubuntu/squid:latest
+      container_name: squid-proxy
+      ports:
+       - "3128:3128"
+      networks:
+       - dmz_net
+      volumes:
+       - ./squid/squid.conf:/etc/squid/squid.conf
+      ulimits:
+       nofile:
+        soft: "65536"
+        hard: "65536"
+      command: squid -N -d 1
 
 
-#====================== PARTE INTERNA ======================
+    # Keycloak (IdP per autenticazione)
+     keycloak:
+        image: quay.io/keycloak/keycloak:latest
+        container_name: keycloak
+        platform: linux/amd64
+        command:
+          - start-dev
+          - --http-port=8081
+          - --hostname-strict=false
+          - --http-enabled=true
+          - --import-realm
+        environment:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+        networks:
+          - dmz_net
+        ports:
+          - "8081:8081"   
+        volumes:
+          - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json  
 
- # Envoy Proxy (PEP)
- pep-envoy:
-  build: ./auth-system/envoy/compose
-  container_name: pep-envoy
-  # Stranamente envoy non interpreta le variabili d'ambiente :(
-  environment:
-      - DEBUG_LEVEL=debug
-      - SERVICE_NAME=app
-      - SERVICE_PORT=8080
-  volumes:
-   - ./auth-system/envoy/envoy.yaml:/config/envoy.yaml
-  networks:
-   - internal_net
-   - dmz_net
-   - prod_net
-   - dev_net
-  ports:
-   - "10000:10000"
-   - "10001:10001"
+
+    #====================== PARTE INTERNA ======================
+
+     # Envoy Proxy (PEP)
+     pep-envoy:
+      build: ./auth-system/envoy/compose
+      container_name: pep-envoy
+      # Stranamente envoy non interpreta le variabili d'ambiente :(
+      environment:
+          - DEBUG_LEVEL=info
+          - SERVICE_NAME=internal-service
+          - SERVICE_PORT=8080
+          # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
+          - SERVICE_NODE=node1
+          - SERVICE_CLUSTER=cluster1
+      volumes:
+       - ./auth-system/envoy/envoy.yaml:/config/envoy.yaml
+       - ./auth-system/envoy/oauth-secrets.yaml:/etc/envoy/oauth-secrets.yaml
+      networks:
+       - internal_net
+       - dmz_net
+       - prod_net
+       - dev_net
+      ports:
+       - "10000:10000"
+       - "10001:10001"
    
- # OPA (PDP)
- pdp-opa:
-  image: openpolicyagent/opa:latest-envoy
-  container_name: pdp-opa
-  networks:
-   - internal_net
-  command:
-   - "run"
-   - "--server"
-   - "--log-level=debug"
-   - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
-   - "--set=decision_logs.console=true"
-   - "/policies/policy.rego"
-  volumes:
-   - ./auth-system/opa/policies:/policies:ro
-  ports:
-   - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
+     # OPA (PDP)
+     pdp-opa:
+      image: openpolicyagent/opa:latest-envoy
+      container_name: pdp-opa
+      networks:
+       - internal_net
+      command:
+       - "run"
+       - "--server"
+       - "--log-level=debug"
+       - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+       - "--set=decision_logs.console=true"
+       - "/policies/policy.rego"
+      volumes:
+       - ./auth-system/opa/policies:/policies:ro
+      ports:
+       - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
    
- #Calcola il livello di fiducia e dialoga con il db
- trust-service:
-  build:
-    context: ./auth-system/trust-service
-    dockerfile: Dockerfile
-  container_name: trust-service
-  environment:
-    # Utente predisposto, diverso dall'admin di Postgres
-    DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" 
-    T_SCALE_MINUTES: "1440"    # default: 1 giorno
-    PORT: "5000"
-  networks:
-    - internal_net
-  ports:
-    - "5000:5000"
-  depends_on:
-    - postgres
+     #Calcola il livello di fiducia e dialoga con il db
+     trust-service:
+      build:
+        context: ./auth-system/trust-service
+        dockerfile: Dockerfile
+      container_name: trust-service
+      environment:
+        # Utente predisposto, diverso dall'admin di Postgres
+        DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" 
+        T_SCALE_MINUTES: "1440"    # default: 1 giorno
+        PORT: "5000"
+      networks:
+        - internal_net
+      ports:
+        - "5000:5000"
+      depends_on:
+        - postgres
 
-# Postgres (DBMS interno)
- postgres:
-  image: postgres:latest
-  container_name: postgres
-  environment:
-   POSTGRES_USER: admin
-   POSTGRES_PASSWORD: admin
-   POSTGRES_DB: companydb
-  networks:
-   - internal_net
-  ports:
-   - "5432:5432"
-  volumes:
-   - ./auth-system/postgres/data:/var/lib/postgresql/data
-   - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
+    # Postgres (DBMS interno)
+     postgres:
+      image: postgres:latest
+      container_name: postgres
+      environment:
+       POSTGRES_USER: admin
+       POSTGRES_PASSWORD: admin
+       POSTGRES_DB: companydb
+      networks:
+       - internal_net
+      ports:
+       - "5432:5432"
+      volumes:
+       - ./auth-system/postgres/data:/var/lib/postgresql/data
+       - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
 
  
- #Sito aziendale
- internal-service:
-  image: hashicorp/http-echo:0.2.3
-  container_name: internal-service
-  command: ["-text", "hello from internal", "-listen", ":8080"]
-  networks:
-   - internal_net
-  ports:
-   - "8080:8080" 
-#====================== HOST INTERNI ======================
- host_sviluppo:
-  build: ./host
-  container_name: host_sviluppo
-  environment:
-    USER_ID: "devUser1"
-    USER_NAME: "MarcoDev"
-    ORG_UNIT: "sviluppo"
-    NETWORK: "development"
-    ROLE: "developer"
-    DEVICE_ID: "devPc01"
-    # proxy del PEP 
-    HTTP_PROXY: "http://pep-envoy:10000"
-    HTTPS_PROXY: "http://pep-envoy:10000"
-  networks:
-    - dev_net
+     #Sito aziendale
+     internal-service:
+      image: hashicorp/http-echo:0.2.3
+      container_name: internal-service
+      command: ["-text", "hello from internal", "-listen", ":8080"]
+      networks:
+       - internal_net
+      ports:
+       - "8080:8080" 
+    #====================== HOST INTERNI ======================
+     host_sviluppo:
+      build: ./host
+      container_name: host_sviluppo
+      environment:
+        USER_ID: "devUser1"
+        USER_NAME: "MarcoDev"
+        ORG_UNIT: "sviluppo"
+        NETWORK: "development"
+        ROLE: "developer"
+        DEVICE_ID: "devPc01"
+        # proxy del PEP 
+        HTTP_PROXY: "http://pep-envoy:10000"
+        HTTPS_PROXY: "http://pep-envoy:10000"
+      networks:
+        - dev_net
 
- host_produzione:
-  build: ./host
-  container_name: host_produzione
-  environment:
-    USER_ID: "prodUser1"
-    USER_NAME: "AnnaProd"
-    ORG_UNIT: "produzione"
-    NETWORK: "production"
-    ROLE: "ops"
-    DEVICE_ID: "prodPc01"
-    HTTP_PROXY: "http://pep-envoy:10000"
-    HTTPS_PROXY: "http://pep-envoy:10000"
-  networks:
-    - prod_net
+     host_produzione:
+      build: ./host
+      container_name: host_produzione
+      environment:
+        USER_ID: "prodUser1"
+        USER_NAME: "AnnaProd"
+        ORG_UNIT: "produzione"
+        NETWORK: "production"
+        ROLE: "ops"
+        DEVICE_ID: "prodPc01"
+        HTTP_PROXY: "http://pep-envoy:10000"
+        HTTPS_PROXY: "http://pep-envoy:10000"
+      networks:
+        - prod_net
 
 
-#====================== DA CONFIGURARE ======================
+    #====================== DA CONFIGURARE ======================
 
-# Splunk (SIEM / Log Management)
- splunk:
-  image: splunk/splunk:latest
-  container_name: splunk
-  environment:
-   SPLUNK_START_ARGS: "--accept-license"
-   SPLUNK_PASSWORD: changeme123
-  ports:
-   - "8000:8000"   # Web UI
-   - "8088:8088"   # HTTP Event Collector
-  networks:
-   - dmz_net
-   - internal_net
-  volumes:
-   - ./splunk/etc:/opt/splunk/etc
-   - ./splunk/var:/opt/splunk/var   
+    # Splunk (SIEM / Log Management)
+     splunk:
+      image: splunk/splunk:latest
+      container_name: splunk
+      environment:
+       SPLUNK_START_ARGS: "--accept-license"
+       SPLUNK_PASSWORD: changeme123
+      ports:
+       - "8000:8000"   # Web UI
+       - "8088:8088"   # HTTP Event Collector
+      networks:
+       - dmz_net
+       - internal_net
+      volumes:
+       - ./splunk/etc:/opt/splunk/etc
+       - ./splunk/var:/opt/splunk/var   
 
-# Snort IDS/IPS
- snort:
-  image: frapsoft/snort
-  container_name: snort
-  cap_add:
-    - NET_ADMIN
-    - NET_RAW
-  networks:
-    - dmz_net
-    - internal_net
-  command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
-  #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
-  volumes:
-    - ./snort/snort.conf:/etc/snort/snort.conf:ro
+    # Snort IDS/IPS
+     snort:
+      image: frapsoft/snort
+      container_name: snort
+      cap_add:
+        - NET_ADMIN
+        - NET_RAW
+      networks:
+        - dmz_net
+        - internal_net
+      command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
+      #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
+      volumes:
+        - ./snort/snort.conf:/etc/snort/snort.conf:ro
   
 
- #SOLAMENTE PER DEBUG
- debug:
-    image: curlimages/curl:latest
-    container_name: debug
-    stdin_open: true
-    tty: true
+    #=============== RETI ==========================
+
     networks:
-      - external_net
-      - dmz_net
-      - internal_net
-    entrypoint: [ "sh" ]
-
-
-#Firewall con nftables
- #nftables:
-  #image: networkstatic/nftables
-  #container_name: nftables
-  #cap_add:
-    #- NET_ADMIN
-  #networks:
-   #- external_net
-   #- dmz_net
-   #- internal_net
-  #volumes:
-   #- ./nftables/nftables.conf:/etc/nftables.conf
-  #command: ["nft", "-f", "/etc/nftables.conf"]
-    
-
-networks:
- external_net:
-  driver: bridge
- dmz_net:
-  driver: bridge
- internal_net:
-  driver: bridge
- prod_net:
-  driver: bridge
- dev_net:
-  driver: bridge
+     external_net:
+      driver: bridge
+     dmz_net:
+      driver: bridge
+     internal_net:
+      driver: bridge
+     prod_net:
+      driver: bridge
+     dev_net:
+      driver: bridge
