@@ -36,8 +36,8 @@ Allineamento nel nostro laboratorio:
 - Authentication/Authorization: l’accesso è subordinato a verifica identità e permessi aggiornati.[^5]
 - Continuous improvement: la raccolta di informazioni guida l’evoluzione delle difese.[^3]
 
-Riferimenti: NIST SP 800‑207 (Zero Trust Architecture) e progetto NCCoE “Implementing a Zero Trust Architecture”, che forniscono linee guida e un approccio pratico per scenari dimostrativi analoghi al nostro laboratorio.[^7][^1][^6]
-<span style="display:none">[^10][^11][^12][^13][^14][^15][^16][^17][^8][^9]</span>
+Riferimenti: NIST SP 800‑207 (Zero Trust Architecture) e progetto NCCoE “Implementing a Zero Trust Architecture”, che forniscono linee guida e un approccio pratico per scenari dimostrativi analoghi al nostro laboratorio.[^1][^6]
+
 
 > Nel flusso proveniente dall'interno sono state effettuate delle semplificazioni di autenticazione rilassando il principio di "isola fidata". Questo è stato pensato alla luce di un sofware che adotti principi di autenticazione. In ogni caso la scelta viene sempre demandata a pep e pdp, secondo regole di policy dinamiche. Maggiori dettagli in seguito.
 
@@ -53,27 +53,6 @@ Riferimenti: NIST SP 800‑207 (Zero Trust Architecture) e progetto NCCoE “Imp
 
 [^6]: https://www.nccoe.nist.gov/sites/default/files/legacy-files/zta-project-description-final.pdf
 
-[^7]: https://business.cch.com/CybersecurityPrivacy/nistzerotrustfactsheet.pdf
-
-[^8]: https://www.cimcor.com/blog/the-7-tenets-of-zero-trust
-
-[^9]: https://www.netwrix.com/7-pillars-of-zero-trust.html
-
-[^10]: https://www.actiac.org/system/files/2022-02/ZTA Project Briefing from NIST.pdf
-
-[^11]: https://travisasm.com/blog/our-blog-1/nist-s-7-tenets-of-zero-trust-your-foundational-guide-to-a-secure-future-103
-
-[^12]: https://csrc.nist.rip/Pubs/pd/2020/03/17/implementing-a-zero-trust-architecture/IPD
-
-[^13]: https://www.executivegov.com/articles/nist-nccoe-zero-trust-architecture-implementation-guide
-
-[^14]: https://www.nccoe.nist.gov/sites/default/files/legacy-files/zt-arch-project-description-draft.pdf
-
-[^15]: https://www.cisa.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf
-
-[^16]: https://www.sei.cmu.edu/documents/5716/2021_019_001_978718.pdf
-
-[^17]: https://share.ansi.org/Shared Documents/Standards Activities/Standards-Drive Public-Private Partnership for CETs/SD-PPP Use Cases/NCCOE SD-PPP_September%202024.pdf
 
 ---
 
