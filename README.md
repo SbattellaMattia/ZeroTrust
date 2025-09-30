@@ -5,7 +5,75 @@ Questo progetto universitario per il corso di laurea in Ing. Informatica ed Auto
 
 <img width="1251" height="871" alt="image" src="https://github.com/user-attachments/assets/f899444d-41da-423d-8ab8-d2cafc2f4e7e" />
 
+### Contesto
 
+Il progetto adotta i principi di Zero Trust secondo NIST SP 800‑207, applicando in modo coerente i sette pilastri che guidano la progettazione, il disegno dei flussi e l’operatività quotidiana dell’ambiente di laboratorio. L’obiettivo non è proporre un’unica architettura “giusta”, ma mostrare come i principi Zero Trust possano essere tradotti in scelte concrete di segmentazione, identità, controllo degli accessi e osservabilità, come raccomandato dallo standard NIST.[^1][^2]
+
+- 1) Resources
+Tutti gli elementi dell’ambiente (dati, servizi applicativi, proxy, database, dispositivi/host) sono trattati come risorse da proteggere in modo uniforme, senza eccezioni o “isole fidate”. Anche gli endpoint che simulano postazioni utente sono considerati risorse enterprise ai fini delle policy.[^2][^3]
+- 2) Communication
+Ogni comunicazione è protetta e valutata a prescindere dalla posizione di rete, eliminando il concetto di “interno automaticamente fidato”; i flussi passano attraverso punti di controllo dedicati e sono soggetti alle stesse regole di verifica.[^4][^2]
+- 3) Per‑session access
+L’accesso alle risorse è concesso su base sessione: ogni richiesta instaura un contesto valutato puntualmente, senza ereditare fiducia da connessioni precedenti o da appartenenza alla rete.[^2][^4]
+- 4) Dynamic policy
+Le decisioni di accesso sono determinate da policy dinamiche che combinano identità, ruolo, risorsa/azione richiesta, contesto ambientale e un punteggio di fiducia aggiornato; ciò consente di applicare il principio del minimo privilegio in modo adattivo.[^3][^2]
+- 5) Monitoring
+Tutte le risorse e le azioni sono monitorate in modo continuo per garantire protezione dei dati, visibilità sugli eventi e capacità di risposta; i log e la telemetria alimentano analisi e auditing centralizzati.[^3][^2]
+- 6) Authentication e authorization
+Ogni accesso è preceduto da autenticazione e autorizzazione dinamiche e rigorose; non vengono riconosciute scorciatoie basate sull’ubicazione in rete o su privilegi impliciti.[^5][^2]
+- 7) Continuous improvement
+Lo stato degli asset, dell’infrastruttura e delle comunicazioni è raccolto e analizzato per migliorare progressivamente la postura di sicurezza; la telemetria guida l’aggiornamento delle policy e dei controlli.[^2][^3]
+
+Nota importante: NIST sottolinea che Zero Trust è un insieme di principi guida, non una singola architettura prescrittiva; l’adozione può essere graduale, applicando per priorità i tenets più rilevanti per il contesto.[^6][^1]
+
+Allineamento nel nostro laboratorio:
+
+- Resources: tutte le componenti sono trattate come risorse protette e soggette a controllo.[^2]
+- Communication: i flussi attraversano punti di controllo dedicati e non ereditano fiducia.[^2]
+- Per‑session access: le connessioni verso i servizi sono gestite per sessione e rivalutate.[^2]
+- Dynamic policy: le policy sono valutate dinamicamente in base a identità e rischio contestuale.[^2]
+- Monitoring: telemetria e log centralizzati abilitano visibilità end‑to‑end.[^3]
+- Authentication/Authorization: l’accesso è subordinato a verifica identità e permessi aggiornati.[^5]
+- Continuous improvement: la raccolta di informazioni guida l’evoluzione delle difese.[^3]
+
+Riferimenti: NIST SP 800‑207 (Zero Trust Architecture) e progetto NCCoE “Implementing a Zero Trust Architecture”, che forniscono linee guida e un approccio pratico per scenari dimostrativi analoghi al nostro laboratorio.[^7][^1][^6]
+<span style="display:none">[^10][^11][^12][^13][^14][^15][^16][^17][^8][^9]</span>
+
+> Nel flusso proveniente dall'interno sono state effettuate delle semplificazioni di autenticazione rilassando il principio di "isola fidata". Questo è stato pensato alla luce di un sofware che adotti principi di autenticazione. In ogni caso la scelta viene sempre demandata a pep e pdp, secondo regole di policy dinamiche. Maggiori dettagli in seguito.
+
+[^1]: https://nvlpubs.nist.gov/nistpubs/specialpublications/NIST.SP.800-207.pdf
+
+[^2]: https://stratixsystems.com/seven-tenets-of-zero-trust-architecture/
+
+[^3]: https://www.cisa.gov/sites/default/files/2023-04/CISA_Zero_Trust_Maturity_Model_Version_2_508c.pdf
+
+[^4]: https://terrazone.io/nist-sp-800-207/
+
+[^5]: https://csrc.nist.gov/pubs/sp/800/207/a/final
+
+[^6]: https://www.nccoe.nist.gov/sites/default/files/legacy-files/zta-project-description-final.pdf
+
+[^7]: https://business.cch.com/CybersecurityPrivacy/nistzerotrustfactsheet.pdf
+
+[^8]: https://www.cimcor.com/blog/the-7-tenets-of-zero-trust
+
+[^9]: https://www.netwrix.com/7-pillars-of-zero-trust.html
+
+[^10]: https://www.actiac.org/system/files/2022-02/ZTA Project Briefing from NIST.pdf
+
+[^11]: https://travisasm.com/blog/our-blog-1/nist-s-7-tenets-of-zero-trust-your-foundational-guide-to-a-secure-future-103
+
+[^12]: https://csrc.nist.rip/Pubs/pd/2020/03/17/implementing-a-zero-trust-architecture/IPD
+
+[^13]: https://www.executivegov.com/articles/nist-nccoe-zero-trust-architecture-implementation-guide
+
+[^14]: https://www.nccoe.nist.gov/sites/default/files/legacy-files/zt-arch-project-description-draft.pdf
+
+[^15]: https://www.cisa.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf
+
+[^16]: https://www.sei.cmu.edu/documents/5716/2021_019_001_978718.pdf
+
+[^17]: https://share.ansi.org/Shared Documents/Standards Activities/Standards-Drive Public-Private Partnership for CETs/SD-PPP Use Cases/NCCOE SD-PPP_September%202024.pdf
 
 ---
 
@@ -47,64 +115,137 @@ Questo progetto universitario per il corso di laurea in Ing. Informatica ed Auto
 ---
 
 ## Possibili scenari
+### Legenda
+🔴 Rosso: richiesta applicativa dall’esterno verso il servizio interno.  
+🟢 Verde: ciclo di autenticazione tra PEP e Keycloak (redirect/login/ritorno).  
+🔵 Blu: valutazione autorizzativa tra PEP, PDP, Trust Service e DB.
 
-### 1) ESTERNO → INTERNO
+
+### 1) External → Internal
 **Percorso logico:**
 
-<img width="1410" height="672" alt="image" src="https://github.com/user-attachments/assets/659c049e-4a27-4aaf-a8ce-0e3ca6f904be" />
+<img width="1473" height="800" alt="image" src="https://github.com/user-attachments/assets/b2e11386-df01-486e-a0c7-f595641995e2" />
+
+**Step:**
+
+1) Ingresso dalla rete esterna
+
+- Il client EXT invia una richiesta verso il servizio pubblicato; il traffico entra in DMZ e passa dal Firewall secondo regole restrittive.
+- Colore: rosso.
+
+2) Intercetto al PEP
+
+- La richiesta raggiunge il PEP (Envoy), che è l’unico front‑end verso il servizio interno.
+- Colore: rosso.
+
+3) Verifica sessione e autenticazione
+
+- Se non esiste una sessione valida, il PEP avvia il ciclo OIDC reindirizzando l’utente a Keycloak per il login; al termine dell’autenticazione, l’utente ritorna al PEP con prova d’identità.
+- Colore: verde (PEP ↔ Keycloak ↔ PEP).
+
+4) Preparazione della decisione
+
+- Con identità e contesto disponibili, il PEP costruisce la richiesta di autorizzazione e la invia al PDP (OPA) per la valutazione.
+- Colore: blu (PEP → PDP).
+
+5) Calcolo del trust score
+
+- Il PDP interroga il Trust Service per ottenere il trust score dell’utente; il Trust Service consulta/aggiorna il DB (Postgres) con lo storico degli eventi.
+- Colore: blu (PDP ↔ Trust Service ↔ DB).
+
+6) Decisione di policy
+
+- Il PDP applica le regole (identità, ruolo, risorsa richiesta, azione, rete/ambiente, trust score) e restituisce al PEP un verdetto ALLOW o DENY.
+- Colore: blu (PDP → PEP).
+
+7) Inoltro o blocco verso il servizio
+
+- Se ALLOW, il PEP inoltra la richiesta all’Internal Web Service e restituisce la risposta al client attraverso lo stesso percorso di ritorno; se DENY, risponde con codice di errore (es. 403).
+- Colori: rosso per l’inoltro verso il servizio; risposta sul percorso inverso.
+
+---
+
+### 2) Internal → External
+**Percorso logico:**
+
+<img width="1467" height="799" alt="image" src="https://github.com/user-attachments/assets/a1ff7bd3-c993-455e-b373-c8b39a4bc8e4" />
+
 
 
 **Step:**
 
-1. Il client apre connessione verso l'indirizzo pubblico; il pacchetto arriva al container `Firewall`.
-2. `Firewall` applica le regole espresse come ad esempio: *consenti solo connessioni verso l'IP\:porta del `Bastion Host`*.
-3. `Bastion Host` richiede autenticazione. Se l'autenticazione fallisce -> drop/401; se ok -> normalizzazione e inserimento di header di identità (es. JWT o `X-Forwarded-User`).
-4. `Bastion Host` inoltra la richiesta al `PEP` (Envoy). Envoy estrae attributi della richiesta (utente, risorsa, azione, indirizzo sorgente).
-5. Envoy chiama `PDP` (OPA) che delega il calcolo del `trust score` al `Trust Service`. Questo comunica con il `DB Postgres` per ricevere lo storico delle azioni e aggiornarlo con i nuovi punteggi.
-6. OPA valuta la policy e restituisce ALLOW/DENY.
-7. Se ALLOW, Envoy inoltra la richiesta al `webservice` in DMZ; se DENY, Envoy risponde con 403.
-8. La risposta del `Web Service` risale il percorso inverso: `Web Service → Envoy → Bastion Host → Firewall → client esterno`.
+1) Origine della richiesta
+
+- Un host interno (Prod o Dev) avvia una connessione verso una destinazione esterna; il traffico è instradato verso il PEP, eliminando fiducia implicita tra segmenti.
+
+2) Intercetto e preparazione
+
+- Il PEP riceve la richiesta e raccoglie il contesto minimo necessario: identità/ruolo del chiamante, rete/ambiente di provenienza, destinazione e tipo di operazione.
+- Colore: inizio Rosso fino al PEP.
+
+3) Decisione di policy
+
+- Il PEP chiede una valutazione al PDP (OPA), fornendo gli attributi della richiesta.
+- Colore: Blu (PEP → PDP).
+
+4) Trust score
+
+- Il PDP ottiene dal Trust Service il punteggio di fiducia aggiornato; il Trust Service consulta/aggiorna il DB con lo storico rilevante.
+- Colore: Blu (PDP ↔ Trust Service ↔ DB).
+
+5) Verdetto
+
+- Il PDP applica le regole (least‑privilege, categorie di destinazione, orari, contesto) e restituisce ALLOW/DENY al PEP.
+- Colore: Blu (PDP → PEP).
+
+6) Uscita controllata
+
+- Se ALLOW, il PEP inoltra la richiesta verso Squid nella DMZ; il firewall consente l’uscita in Internet solo dal proxy. In caso di DENY, il PEP blocca e notifica l’errore al chiamante.
+- Colore: Rosso (PEP → Squid → Firewall → EXT).
 
 ---
 
-### 2) INTERNO → ESTERNO
+### 3) Internal → Internal
 **Percorso logico:**
 
-<img width="1399" height="655" alt="image" src="https://github.com/user-attachments/assets/720fbdc1-c7da-4c91-b399-77de89b99d87" />
+<img width="1486" height="797" alt="image" src="https://github.com/user-attachments/assets/bf3a66c9-6f7b-4891-ac62-1671c1e9868c" />
 
+> In questo scenario si assume che l’utente, operando da una macchina aziendale, abbia già effettuato l’autenticazione tramite il software preinstallato; di conseguenza, l’accesso al servizio avviene sfruttando la sessione aziendale esistente, senza eseguire nuovamente il login né passare dal flusso interattivo di Keycloak.
 
-**Step:**
+**Step**
 
-1. L'host interno innesca la richiesta (es. chiamata HTTPS verso un'API esterna). La rete forza l'host a passare per `PEP`.
-2. `PEP` (Envoy) intercetta la richiesta e invia un input al `PDP` (OPA) con `user/service`, `destinazione`, `azione`, `source_network`, `device_info`.
-3. `PDP` chiede il `trust score` al `Trust Service` e valuta le policy come ad esempio delle restrizioni di orario.
-4. Se `DENY` → Envoy blocca e ritorna errore al client interno. Se `ALLOW` → Envoy inoltra la richiesta a `Squid`.
-5. `Squid` apre la connessione verso Internet. `Firewall` è configurato per permettere l'uscita verso Internet **solo** dall'IP di `Squid`.
-6. La risposta ritorna: Internet → Firewall → squid → Envoy (opzionale) → host interno.
+1) Origine della richiesta
 
+- Un host interno (Prod o Dev) richiede una risorsa esposta dall’Internal Web Service; il traffico è instradato verso il PEP, evitando fiducia implicita tra segmenti.
 
----
+2) Intercetto al PEP
 
-### 3) INTERNO → INTERNO
-**Percorso logico:**
+- Il PEP riceve la richiesta e verifica l’esistenza di una sessione/identità valida (leggere nota sotto l'immagine);
+- Ottenuti identità e contesto (ruolo, rete/ambiente di provenienza, endpoint e metodo), il PEP chiede al PDP la valutazione della richiesta.
+- Colore: Blu (PEP → PDP).
 
-<img width="1418" height="663" alt="image" src="https://github.com/user-attachments/assets/fed94779-9e6d-4591-a8fb-40e9b57aa9f7" />
+3) Calcolo del trust score
 
+- Il PDP acquisisce dal Trust Service il punteggio di fiducia aggiornato, con consultazione/aggiornamento del DB per lo storico.
+- Colore: Blu (PDP ↔ Trust Service ↔ DB).
 
-**Step dettagliati:**
+5) Applicazione delle policy
 
-1. Un `host` effettua la chiamata verso una risorsa interna; le regole di rete obbligano il traffico a passare per `PEP`.
-2. Envoy intercetta la richiesta e invia a OPA gli attributi rilevanti.
-3. OPA verifica il `trust score` dal `Trust Service` e valuta le policy: es. `ops-host` può eseguire POST se trust >= 0.8; `dev-host` solo GET e su endpoint limitati.
-4. Ancora una volta se ALLOW, Envoy inoltra al `webservice`. Se DENY → 403.
+- Il PDP applica regole che differenziano ambienti e ruoli.
+- Colore: Blu (PDP → PEP).
+
+6) Esito ed inoltro
+
+- Se ALLOW, il PEP inoltra la richiesta all’Internal Web Service e instrada la risposta di ritorno verso l’host sorgente; se DENY, risponde con errore.
+- Colore: Rosso (PEP ↔ Internal Web Service ↔ host interno).
 
 
 ---
 
 ## Logging
 
-**Logging / monitoring:** Tutti i passaggi devono essere loggati in modo da poter essere monitorati da `Snort` e `Splunk`. 
-> Nota: La `management-net` serve unicamente per permettere a Splunk di accedere ai file di log.
+**Logging / monitoring:** Tutti i passaggi devono essere loggati in modo da poter essere monitorati da `Snort`, `Fluentd` e `Splunk`. 
+> Nota: La `management-net` serve unicamente per permettere a Fluentd e Splunk di accedere ai file di log.
 
 > Nota: Snort è configurato solo in modalità IDS. Ha accesso a tutte le reti (`internal_net`, `dmz_net`, `prod_net`, `dev_net`) in modo da poter analizzare il traffico entrante ed uscente.
 
