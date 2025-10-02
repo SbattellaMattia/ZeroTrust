@@ -5,7 +5,7 @@ static_resources:
           address: 0.0.0.0
           port_value: 10000
       filter_chains:
-          - filters:
+        - filters:
             - name: envoy.filters.network.http_connection_manager
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
@@ -30,7 +30,7 @@ static_resources:
                           uri: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/token
                           timeout: 5s
                         authorization_endpoint: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/auth
-                        redirect_uri: "%REQ(x-forwarded-proto)%://pep-envoy:10000/oauth2/callback"
+                        redirect_uri: "https://pep-envoy:10000/oauth2/callback"
                         redirect_path_matcher:
                           path:
                             exact: /oauth2/callback
@@ -42,20 +42,18 @@ static_resources:
                           token_secret:
                             name: oauth_token_secret
                             sds_config:
-                              path: "/etc/envoy/oauth-secrets.yaml"
+                              path: "/etc/envoy/oauth-token-secret.yaml"
                           hmac_secret:
                             name: oauth_hmac_secret
                             sds_config:
-                              path: "/etc/envoy/oauth-secrets.yaml"
+                              path: "/etc/envoy/oauth-hmac-secret.yaml"
                         auth_scopes:
                           - openid
                           - profile
                           - email
                         forward_bearer_token: true  # Forward del JWT ai servizi upstream
-                
-                  
 
-                  # Autorizzazione delegata a OPA (PDP)  
+                  # Autorizzazione delegata a OPA (PDP)
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
@@ -68,9 +66,22 @@ static_resources:
                           target_uri: pdp-opa:9191
                           stat_prefix: ext_authz
                         timeout: 2s
+
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+          transport_socket:   
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain:
+                      filename: "/etc/envoy/certs/server.crt"
+                    private_key:
+                      filename: "/etc/envoy/certs/server.key"
+
   clusters:
     # Cluster Keycloak
     - name: keycloak
@@ -87,7 +98,7 @@ static_resources:
                   address: keycloak
                   port_value: 8081
 
-    # Cluster server interno            
+    # Cluster server interno
     - name: internal-service
       connect_timeout: 2s
       type: STRICT_DNS
@@ -99,8 +110,9 @@ static_resources:
           - endpoint:
               address:
                 socket_address:
-                  address: internal-service #${SERVICE_NAME}
-                  port_value: 8080          #${SERVICE_PORT}
+                  address: internal-service
+                  port_value: 8080
+
 admin:
   access_log_path: "/dev/null"
   address:

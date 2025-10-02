@@ -1,2 +1,5 @@
+.env
+auth-system/envoy/secrets/
+keycloak/data*
 bastion-host/ssh*
-postgres/data
+postgres/data*

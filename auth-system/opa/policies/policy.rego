@@ -17,20 +17,18 @@ import future.keywords
 default allow := false
 
 allow if {
-	# Check if the `user_name` score is >=50
 	basic_auth.score >= 50
 }
 
 basic_auth := {"score": score} if {
-	# The `some` keyword declares local variables. This example declares a local
-	# variable called `user_name` (used below).
-	some username
+	authz := input.attributes.request.http.headers.authorization
+  	authz != ""
 
-	# The `=` operator in Rego performs pattern matching/unification. OPA finds
-	# variable assignments that satisfy this expression (as well as all of the other
-	# expressions in the same rule.)
-	input.parsed_path = ["users", "profile", username]
-	
+  	token := trim_prefix(authz, "Bearer ")
+  	claims := io.jwt.decode(token)[1]
+
+  	username := claims.preferred_username
+
 	# Chiama il Trust Service per ottenere il trust score
   	response := http.send({
     	"method": "GET",
