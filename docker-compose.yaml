@@ -126,6 +126,8 @@
        - "--server"
        - "--log-level=debug"
        - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+       # Per passare gli header
+       - "--set=plugins.envoy_ext_authz_grpc.query=data.envoy.authz.response"
        - "--set=decision_logs.console=true"
        - "/policies/policy.rego"
       volumes:
@@ -170,13 +172,24 @@
  
      #Sito aziendale
      internal-service:
-      image: hashicorp/http-echo:0.2.3
+      build:
+        context: ./internal-web-service
+      image: internal-service:latest
       container_name: internal-service
-      command: ["-text", "hello from internal", "-listen", ":8080"]
+      restart: unless-stopped
+      environment:
+        - NODE_ENV=production
       networks:
        - internal_net
       ports:
-       - "8080:8080" 
+        - "8080:8080"
+      #Per aggiungere healthcheck decommentare le righe sottostanti
+      
+      #healthcheck:
+      #  test: ["CMD", "node", "healthcheck.js"]
+      #  interval: 10s
+      #  timeout: 3s
+      #  retries: 5
     #====================== HOST INTERNI ======================
      host_sviluppo:
       build: ./host

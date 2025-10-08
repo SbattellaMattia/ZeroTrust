@@ -51,6 +51,7 @@ ON CONFLICT (event_type) DO NOTHING;
 -- Esempio utenti
 INSERT INTO trust.users (username, initial_score, current_score) VALUES
   ('mrossi', 80, 80),
+  ('lbianchi', 60, 60),
   ('mrhacker', 10, 10)
 ON CONFLICT (username) DO NOTHING;
 

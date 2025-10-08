@@ -17,8 +17,18 @@ static_resources:
                     - name: backend
                       domains: ["*"]
                       routes:
+                        # Bypass ext_authz solo per callback/signout OAuth2
+                        - match: { prefix: "/oauth2" }
+                          route: { cluster: internal-service }
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
+                        # Tutto il resto passa da ext_authz
                         - match: { prefix: "/" }
                           route: { cluster: internal-service }
+            
+                          
                 http_filters:
                   # Filtro OAuth2 → gestisce login automatico
                   - name: envoy.filters.http.oauth2
@@ -30,7 +40,7 @@ static_resources:
                           uri: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/token
                           timeout: 5s
                         authorization_endpoint: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/auth
-                        redirect_uri: "https://pep-envoy:10000/oauth2/callback"
+                        redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/oauth2/callback"
                         redirect_path_matcher:
                           path:
                             exact: /oauth2/callback
@@ -47,10 +57,7 @@ static_resources:
                             name: oauth_hmac_secret
                             sds_config:
                               path: "/etc/envoy/oauth-hmac-secret.yaml"
-                        auth_scopes:
-                          - openid
-                          - profile
-                          - email
+                        auth_scopes: [openid, profile, email]
                         forward_bearer_token: true  # Forward del JWT ai servizi upstream
 
                   # Autorizzazione delegata a OPA (PDP)
@@ -66,7 +73,7 @@ static_resources:
                           target_uri: pdp-opa:9191
                           stat_prefix: ext_authz
                         timeout: 2s
-
+                  
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

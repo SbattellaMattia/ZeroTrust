@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Profilo Studente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/style.css" rel="stylesheet">
+</head>
+<body>
+  <main class="container">
+    <h1>Profilo</h1>
+    <div id="status" class="status"></div>
+
+    <section class="card">
+      <div class="row"><span class="label">Utente:</span><span id="user"></span></div>
+      <div class="row"><span class="label">Bio:</span><span id="bio-view"></span></div>
+    </section>
+
+    <section id="edit-section" class="card" style="display:none">
+      <h2>Modifica bio</h2>
+      <textarea id="bio-input" rows="4" maxlength="500" placeholder="Scrivi la nuova bio..."></textarea>
+      <div class="actions">
+        <button id="save-btn">Salva</button>
+      </div>
+      <div id="msg" class="msg"></div>
+    </section>
+
+    <section class="card info-box">
+      <h3>Nota accademica</h3>
+      <p>
+        Questo sistema costituisce un progetto universitario di dimostrazione dei principi di architettura Zero Trust. 
+        La bio non è persistente e risulta condivisa tra tutti i profili utente, in quanto l'obiettivo della demo 
+        è illustrare il controllo degli accessi dinamico basato su trust score:
+      </p>
+      <ul>
+        <li><strong>Trust score ≥ 70:</strong> accesso completo (full) — modifica consentita</li>
+        <li><strong>50 ≤ trust score &lt; 70:</strong> accesso limitato (limited) — sola lettura</li>
+        <li><strong>Trust score &lt; 50:</strong> accesso negato (deny) — nessuna visualizzazione</li>
+      </ul>
+      <p>
+        L'implementazione di persistenza e isolamento per utente non rientra negli obiettivi di questa dimostrazione proof-of-concept.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    async function loadProfile() {
+      const r = await fetch('/api/profile', { credentials: 'same-origin' });
+      const data = await r.json();
+
+      document.getElementById('user').textContent = data.user || '';
+      document.getElementById('bio-view').textContent = data.bio || '';
+
+      const status = document.getElementById('status');
+      const canEdit = !!data.canEdit;
+      status.textContent = (canEdit ? 'Accesso completo: ' : 'Accesso limitato: ') + data.score;
+
+      const editSec = document.getElementById('edit-section');
+      editSec.style.display = canEdit ? 'block' : 'none';
+      if (canEdit) document.getElementById('bio-input').value = data.bio || '';
+    }
+
+    async function saveBio() {
+      const bio = document.getElementById('bio-input').value;
+      const msg = document.getElementById('msg');
+      msg.textContent = '';
+      try {
+        const r = await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bio }),
+          credentials: 'same-origin'
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          msg.textContent = 'Errore: ' + (data.error || r.statusText);
+          return;
+        }
+        document.getElementById('bio-view').textContent = data.bio;
+        msg.textContent = 'Salvato.';
+      } catch (e) {
+        msg.textContent = 'Errore di rete.';
+      }
+    }
+
+    document.getElementById('save-btn').addEventListener('click', saveBio);
+    loadProfile();
+  </script>
+</body>
+</html>

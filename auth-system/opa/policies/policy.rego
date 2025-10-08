@@ -13,22 +13,25 @@
 
 package envoy.authz
 import future.keywords
+import input.attributes.request.http as http_req
 
 default allow := false
 
 allow if {
-	basic_auth.score >= 50
+	auth.score >= 50
 }
 
-basic_auth := {"score": score} if {
-	authz := input.attributes.request.http.headers.authorization
+
+auth := {"score": score, "username": username} if {
+	authz := http_req.headers.authorization
   	authz != ""
 
   	token := trim_prefix(authz, "Bearer ")
   	claims := io.jwt.decode(token)[1]
 
+  	# preferred_username o sub come fallback
   	username := claims.preferred_username
-
+	
 	# Chiama il Trust Service per ottenere il trust score
   	response := http.send({
     	"method": "GET",
@@ -38,4 +41,33 @@ basic_auth := {"score": score} if {
   	})
 
 	score := response.body.score
+}
+
+# Calcola access level
+access_level := "full" if {
+    allow
+    auth.score >= 70
+} else := "limited" if {
+    allow
+}
+
+# Response per allow - usa OBJECT non ARRAY
+response := {
+    "allowed": true,
+    "headers": {
+        "x-user": auth.username,
+		"x-score": sprintf("%.2f", [auth.score]),
+        "x-access-level": access_level
+    }
+} if {
+    allow
+}
+
+# Response per deny
+response := {
+    "allowed": false,
+    "http_status": 403,
+    "body": "{\"message\":\"Forbidden\"}"
+} if {
+    not allow
 }
