@@ -1,273 +1,288 @@
-    services:
+services:
+  #=========================== SOLAMENTE PER DEBUG ========================
+  debug:
+    image: curlimages/curl:latest
+    container_name: debug
+    stdin_open: true
+    tty: true
+    networks:
+      - external_net
+      - dmz_net
+      - internal_net
+    entrypoint: ["sh"]
+  #========================================================================
 
-     #=========================== SOLAMENTE PER DEBUG ========================
-     debug:
-        image: curlimages/curl:latest
-        container_name: debug
-        stdin_open: true
-        tty: true
-        networks:
-          - external_net
-          - dmz_net
-          - internal_net
-        entrypoint: [ "sh" ]
-     #========================================================================
+  #Simula client esterno
+  external_client:
+    image: alpine:latest
+    container_name: external-client
+    command: sh -c "while true; do sleep 3600; done"
+    networks:
+      - external_net
 
-     
-     #Simula client esterno
-     external_client:
-      image: alpine:latest
-      container_name: external-client
-      command: sh -c "while true; do sleep 3600; done"
-      networks:
-       - external_net
+  # Bastion host 
+  bastion-host:
+    image: binlab/bastion
+    container_name: bastion-host
+    hostname: bastion-host
+    restart: unless-stopped
+    expose:
+      - 22/tcp
+    ports:
+      - 22222:22/tcp
+    environment:
+      PUBKEY_AUTHENTICATION: "true"
+      GATEWAY_PORTS: "false"
+      PERMIT_TUNNEL: "false"
+      X11_FORWARDING: "false"
+      TCP_FORWARDING: "true"
+      AGENT_FORWARDING: "true"
+    volumes:
+      - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
+      - ./bastion-host/ssh:/usr/etc/ssh:rw
+    extra_hosts:
+      - docker-host:172.17.0.1
+    networks:
+      - dmz_net
 
-     # Bastion host 
-     bastion-host:
-      image: binlab/bastion
-      container_name: bastion-host
-      hostname: bastion-host
-      restart: unless-stopped
-      expose:
-        - 22/tcp
-      ports:
-        - 22222:22/tcp
-      environment:
-        PUBKEY_AUTHENTICATION: "true"
-        GATEWAY_PORTS: "false"
-        PERMIT_TUNNEL: "false"
-        X11_FORWARDING: "false"
-        TCP_FORWARDING: "true"
-        AGENT_FORWARDING: "true"
-      volumes:
-        - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
-        - ./bastion-host/ssh:/usr/etc/ssh:rw
-      extra_hosts:
-        - docker-host:172.17.0.1
-      networks:
-        - dmz_net
-
-     # Squid Proxy (forward proxy in DMZ)
-     squid-proxy:
-      image: ubuntu/squid:latest
-      container_name: squid-proxy
-      ports:
-       - "3128:3128"
-      networks:
-       - dmz_net
-      volumes:
-       - ./squid/squid.conf:/etc/squid/squid.conf
-      ulimits:
-       nofile:
+  # Squid Proxy (forward proxy in DMZ)
+  squid-proxy:
+    image: ubuntu/squid:latest
+    container_name: squid-proxy
+    ports:
+      - "3128:3128"
+    networks:
+      - dmz_net
+    volumes:
+      - ./squid/squid.conf:/etc/squid/squid.conf
+    ulimits:
+      nofile:
         soft: "65536"
         hard: "65536"
-      command: squid -N -d 1
+    command: squid -N -d 1
 
+  #====================== PARTE AUTENTICAZIONE ======================
 
-    # Keycloak (IdP per autenticazione)
-     keycloak:
-        image: quay.io/keycloak/keycloak:latest
-        container_name: keycloak
-        platform: linux/amd64
-        command:
-          - start-dev
-          - --http-port=8081
-          - --hostname-strict=false
-          - --http-enabled=true
-          - --import-realm
-        environment:
-          KEYCLOAK_ADMIN: admin
-          KEYCLOAK_ADMIN_PASSWORD: admin
-        networks:
-          - dmz_net
-        ports:
-          - "8081:8081"   
-        volumes:
-          - ./keycloak/data/h2:/opt/keycloak/data/h2
-          - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json  
-
-
-    #====================== PARTE INTERNA ======================
-
-     # Envoy Proxy (PEP)
-     pep-envoy:
-      build: ./auth-system/envoy/compose
-      container_name: pep-envoy
-      # Stranamente envoy non interpreta le variabili d'ambiente :(
-      environment:
-          - DEBUG_LEVEL=info
-          - SERVICE_NAME=internal-service
-          - SERVICE_PORT=8080
-          # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
-          - SERVICE_NODE=node1
-          - SERVICE_CLUSTER=cluster1
-      volumes:
-       - ./auth-system/envoy/envoy.yaml:/config/envoy.yaml
-       - ./auth-system/envoy/secrets/oauth-token-secret.yaml:/etc/envoy/oauth-token-secret.yaml
-       - ./auth-system/envoy/secrets/oauth-hmac-secret.yaml:/etc/envoy/oauth-hmac-secret.yaml
-       - ./auth-system/envoy/secrets/certs:/etc/envoy/certs
-      networks:
-       - internal_net
-       - dmz_net
-       - prod_net
-       - dev_net
-      ports:
-       - "10000:10000"
-       - "10001:10001"
-   
-     # OPA (PDP)
-     pdp-opa:
-      image: openpolicyagent/opa:latest-envoy
-      container_name: pdp-opa
-      networks:
-       - internal_net
-      command:
-       - "run"
-       - "--server"
-       - "--log-level=debug"
-       - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
-       # Per passare gli header
-       - "--set=plugins.envoy_ext_authz_grpc.query=data.envoy.authz.response"
-       - "--set=decision_logs.console=true"
-       - "/policies/policy.rego"
-      volumes:
-       - ./auth-system/opa/policies:/policies:ro
-      ports:
-       - "9191:9191"   # gRPC plugin port OPA -> Envoy gRPC
-   
-     #Calcola il livello di fiducia e dialoga con il db
-     trust-service:
-      build:
-        context: ./auth-system/trust-service
-        dockerfile: Dockerfile
-      container_name: trust-service
-      environment:
-        # Utente predisposto, diverso dall'admin di Postgres
-        DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb" 
-        T_SCALE_MINUTES: "1440"    # default: 1 giorno
-        PORT: "5000"
-      networks:
-        - internal_net
-      ports:
-        - "5000:5000"
-      depends_on:
-        - postgres
-
-    # Postgres (DBMS interno)
-     postgres:
-      image: postgres:latest
-      container_name: postgres
-      environment:
-       POSTGRES_USER: admin
-       POSTGRES_PASSWORD: admin
-       POSTGRES_DB: companydb
-      networks:
-       - internal_net
-      ports:
-       - "5432:5432"
-      volumes:
-       - ./auth-system/postgres/data:/var/lib/postgresql/data
-       - ./auth-system/postgres/init:/docker-entrypoint-initdb.d
-
- 
-     #Sito aziendale
-     internal-service:
-      build:
-        context: ./internal-web-service
-      image: internal-service:latest
-      container_name: internal-service
-      restart: unless-stopped
-      environment:
-        - NODE_ENV=production
-      networks:
-       - internal_net
-      ports:
-        - "8080:8080"
-      #Per aggiungere healthcheck decommentare le righe sottostanti
-      
-      #healthcheck:
-      #  test: ["CMD", "node", "healthcheck.js"]
-      #  interval: 10s
-      #  timeout: 3s
-      #  retries: 5
-    #====================== HOST INTERNI ======================
-     host_sviluppo:
-      build: ./host
-      container_name: host_sviluppo
-      environment:
-        USER_ID: "devUser1"
-        USER_NAME: "MarcoDev"
-        ORG_UNIT: "sviluppo"
-        NETWORK: "development"
-        ROLE: "developer"
-        DEVICE_ID: "devPc01"
-        # proxy del PEP 
-        HTTP_PROXY: "http://pep-envoy:10000"
-        HTTPS_PROXY: "http://pep-envoy:10000"
-      networks:
-        - dev_net
-
-     host_produzione:
-      build: ./host
-      container_name: host_produzione
-      environment:
-        USER_ID: "prodUser1"
-        USER_NAME: "AnnaProd"
-        ORG_UNIT: "produzione"
-        NETWORK: "production"
-        ROLE: "ops"
-        DEVICE_ID: "prodPc01"
-        HTTP_PROXY: "http://pep-envoy:10000"
-        HTTPS_PROXY: "http://pep-envoy:10000"
-      networks:
-        - prod_net
-
-
-    #====================== DA CONFIGURARE ======================
-
-    # Splunk (SIEM / Log Management)
-     splunk:
-      image: splunk/splunk:latest
-      container_name: splunk
-      environment:
-       SPLUNK_START_ARGS: "--accept-license"
-       SPLUNK_PASSWORD: changeme123
-      ports:
-       - "8000:8000"   # Web UI
-       - "8088:8088"   # HTTP Event Collector
-      networks:
-       - dmz_net
-       - internal_net
-      volumes:
-       - ./splunk/etc:/opt/splunk/etc
-       - ./splunk/var:/opt/splunk/var   
-
-    # Snort IDS/IPS
-     snort:
-      image: frapsoft/snort
-      container_name: snort
-      cap_add:
-        - NET_ADMIN
-        - NET_RAW
-      networks:
-        - dmz_net
-        - internal_net
-      command: snort -i eth0 -A console -c /etc/snort/snort.conf                   #IDS
-      #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
-      volumes:
-        - ./snort/snort.conf:/etc/snort/snort.conf:ro
-  
-
-    #=============== RETI ==========================
-
+  # Keycloak (IdP per autenticazione)
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    platform: linux/amd64
+    command:
+      - start-dev
+      - --http-port=8081
+      - --hostname-strict=false
+      - --http-enabled=true
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     networks:
-     external_net:
-      driver: bridge
-     dmz_net:
-      driver: bridge
-     internal_net:
-      driver: bridge
-     prod_net:
-      driver: bridge
-     dev_net:
-      driver: bridge
+      - dmz_net
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./authentication-system/keycloak/data/h2:/opt/keycloak/data/h2
+      
+  keycloak-listener:
+    build:
+      context: ./authentication-system/keycloak-listener
+      dockerfile: Dockerfile
+    container_name: keycloak-listener
+    environment:
+      KEYCLOAK_BASE: "http://keycloak:8081"
+      KEYCLOAK_REALM: "zerotrust"
+      KEYCLOAK_ADMIN_USER: "admin"
+      KEYCLOAK_ADMIN_PASS: "admin"
+      TRUST_URL: "http://trust-service:5000/event"
+    depends_on:
+      - keycloak
+      - trust-service
+    networks:
+      - internal_net
+      - dmz_net
+  #====================== PARTE INTERNA ======================
+
+  # Envoy Proxy (PEP)
+  pep-envoy:
+    build: ./authorization-system/envoy/compose
+    container_name: pep-envoy
+    # Stranamente envoy non interpreta le variabili d'ambiente :(
+
+    environment:
+      - DEBUG_LEVEL=info
+      - SERVICE_NAME=internal-service
+      - SERVICE_PORT=8080
+      # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
+
+      - SERVICE_NODE=node1
+      - SERVICE_CLUSTER=cluster1
+    volumes:
+      - ./authorization-system/envoy/envoy.yaml:/config/envoy.yaml
+      - ./authorization-system/envoy/secrets/oauth-token-secret.yaml:/etc/envoy/oauth-token-secret.yaml
+      - ./authorization-system/envoy/secrets/oauth-hmac-secret.yaml:/etc/envoy/oauth-hmac-secret.yaml
+      - ./authorization-system/envoy/secrets/certs:/etc/envoy/certs
+    networks:
+      - internal_net
+      - dmz_net
+      - prod_net
+      - dev_net
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+  # OPA (PDP)
+  pdp-opa:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: pdp-opa
+    networks:
+      - internal_net
+    command:
+      - "run"
+      - "--server"
+      - "--log-level=debug"
+      - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+      # Per passare gli header
+
+      - "--set=plugins.envoy_ext_authz_grpc.query=data.envoy.authz.response"
+      - "--set=decision_logs.console=true"
+      - "/policies/policy.rego"
+    volumes:
+      - ./authorization-system/opa/policies:/policies:ro
+    ports:
+      - "9191:9191" # gRPC plugin port OPA -> Envoy gRPC
+
+  #Calcola il livello di fiducia e dialoga con il db
+  trust-service:
+    build:
+      context: ./authorization-system/trust-service
+      dockerfile: Dockerfile
+    container_name: trust-service
+    environment:
+      # Utente predisposto, diverso dall'admin di Postgres
+      DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb"
+      T_SCALE_MINUTES: "1440" # default: 1 giorno
+      PORT: "5000"
+    networks:
+      - internal_net
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+
+  # Postgres (DBMS interno)
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: companydb
+    networks:
+      - internal_net
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./authorization-system/postgres/data:/var/lib/postgresql/data
+      - ./authorization-system/postgres/init:/docker-entrypoint-initdb.d
+
+  #Sito aziendale
+  internal-service:
+    build:
+      context: ./internal-web-service
+    image: internal-service:latest
+    container_name: internal-service
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dmz_net
+    ports:
+      - "8080:8080"
+    #Per aggiungere healthcheck decommentare le righe sottostanti
+  #healthcheck:
+  #  test: ["CMD", "node", "healthcheck.js"]
+  #  interval: 10s
+  #  timeout: 3s
+  #  retries: 5
+
+
+  #====================== HOST INTERNI ======================
+
+  host_sviluppo:
+    build: ./host
+    container_name: host_sviluppo
+    environment:
+      USER_ID: "devUser1"
+      USER_NAME: "MarcoDev"
+      ORG_UNIT: "sviluppo"
+      NETWORK: "development"
+      ROLE: "developer"
+      DEVICE_ID: "devPc01"
+      # proxy del PEP 
+
+      HTTP_PROXY: "http://pep-envoy:10000"
+      HTTPS_PROXY: "http://pep-envoy:10000"
+    networks:
+      - dev_net
+  host_produzione:
+    build: ./host
+    container_name: host_produzione
+    environment:
+      USER_ID: "prodUser1"
+      USER_NAME: "AnnaProd"
+      ORG_UNIT: "produzione"
+      NETWORK: "production"
+      ROLE: "ops"
+      DEVICE_ID: "prodPc01"
+      HTTP_PROXY: "http://pep-envoy:10000"
+      HTTPS_PROXY: "http://pep-envoy:10000"
+    networks:
+      - prod_net
+
+  #====================== DA CONFIGURARE ======================
+      
+  # Splunk (SIEM / Log Management)
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      SPLUNK_START_ARGS: "--accept-license"
+      SPLUNK_PASSWORD: changeme123
+    ports:
+      - "8000:8000" # Web UI
+      - "8088:8088" # HTTP Event Collector
+    networks:
+      - dmz_net
+      - internal_net
+    volumes:
+      - ./splunk/etc:/opt/splunk/etc
+      - ./splunk/var:/opt/splunk/var
+
+  # Snort IDS/IPS
+  snort:
+    image: frapsoft/snort
+    container_name: snort
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - dmz_net
+      - internal_net
+    command: snort -i eth0 -A console -c /etc/snort/snort.conf #IDS
+    #command: snort -Q --daq afpacket -i eth0:eth1 -c /etc/snort/snort.conf      #IPS
+    volumes:
+      - ./snort/snort.conf:/etc/snort/snort.conf:ro
+
+
+#=============== RETI ==========================
+networks:
+  external_net:
+    driver: bridge
+  dmz_net:
+    driver: bridge
+  internal_net:
+    driver: bridge
+  prod_net:
+    driver: bridge
+  dev_net:
+    driver: bridge
