@@ -1,11 +1,54 @@
 static_resources:
   listeners:
+    #==================== HTTP listener (10000) → solo redirect ====================
+    # Accetta richieste in chiaro e redirige 1:1 la stessa URL verso HTTPS:10001.
+    # Serve a portare il browser in TLS prima della pipeline OAuth2 (cookie Secure/CSRF).
     - address:
         socket_address:
           address: 0.0.0.0
           port_value: 10000
       filter_chains:
         - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                codec_type: auto
+                stat_prefix: redirect_http
+                route_config:
+                  name: redirect_route
+                  virtual_hosts:
+                    - name: redirect_vhost
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          redirect:
+                            https_redirect: true
+                            port_redirect: 10001
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    #========================= HTTPS listener (10001) =============================
+    # Termina TLS lato client e applica la pipeline completa:
+    # 1) OAuth2 per autenticazione/redirect Keycloak, 
+    # 2) ExtAuthz (OPA) per autorizzazione,
+    # 3) Router verso il servizio interno.
+    - address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 10001
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain: { filename: /etc/envoy/certs/server.crt }
+                    private_key:      { filename: /etc/envoy/certs/server.key }
+          filters:
             - name: envoy.filters.network.http_connection_manager
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
@@ -27,20 +70,21 @@ static_resources:
                         # Tutto il resto passa da ext_authz
                         - match: { prefix: "/" }
                           route: { cluster: internal-service }
-            
-                          
+                
+                #========================= Catena di filtri HTTP =========================
                 http_filters:
-                  # Filtro OAuth2 → gestisce login automatico
+                  #------------------------ OAuth2 (Keycloak) ---------------------------
+                  # Gestisce redirect/login e scambio code→token; richiede HTTPS in callback.
                   - name: envoy.filters.http.oauth2
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
                       config:
                         token_endpoint:
                           cluster: keycloak
-                          uri: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/token
+                          uri: https://keycloak:8443/realms/zerotrust/protocol/openid-connect/token
                           timeout: 5s
-                        authorization_endpoint: http://keycloak:8081/realms/zerotrust/protocol/openid-connect/auth
-                        redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/oauth2/callback"
+                        authorization_endpoint: https://keycloak:8443/realms/zerotrust/protocol/openid-connect/auth
+                        redirect_uri: "https://%REQ(:authority)%/oauth2/callback"
                         redirect_path_matcher:
                           path:
                             exact: /oauth2/callback
@@ -50,17 +94,18 @@ static_resources:
                         credentials:
                           client_id: envoy-proxy
                           token_secret:
-                            name: oauth_token_secret
+                            name: oauth-token-secret
                             sds_config:
                               path: "/etc/envoy/oauth-token-secret.yaml"
                           hmac_secret:
-                            name: oauth_hmac_secret
+                            name: oauth-hmac-secret
                             sds_config:
                               path: "/etc/envoy/oauth-hmac-secret.yaml"
                         auth_scopes: [openid, profile, email]
                         forward_bearer_token: true  # Forward del JWT ai servizi upstream
 
-                  # Autorizzazione delegata a OPA (PDP)
+                  #----------------------- ExtAuthz (OPA/PDP) ---------------------------
+                  # Valuta il permesso su ogni request applicativa prima del routing.
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
@@ -73,39 +118,42 @@ static_resources:
                           target_uri: pdp-opa:9191
                           stat_prefix: ext_authz
                         timeout: 2s
-                  
+
+                  #------------------------------ Router --------------------------------
+                  # Esegue il forward verso il cluster selezionato dalla route.
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
-          transport_socket:   
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: "/etc/envoy/certs/server.crt"
-                    private_key:
-                      filename: "/etc/envoy/certs/server.key"
-
   clusters:
-    # Cluster Keycloak
+    #============================= Cluster Keycloak ===============================
+    # Raggiunge l’IdP in TLS (8443) per code→token e redirect sicuri.
     - name: keycloak
       type: STRICT_DNS
       connect_timeout: 2s
-      lb_policy: round_robin
+      lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: keycloak
         endpoints:
-        - lb_endpoints:
-          - endpoint:
-              address:
-                socket_address:
-                  address: keycloak
-                  port_value: 8081
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: keycloak
+                      port_value: 8443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          sni: keycloak
+          # Se CA self-signed, abilitare la validazione caricando la CA nel container:
+          # common_tls_context:
+          #   validation_context:
+          #     trusted_ca:
+          #       filename: /etc/envoy/certs/keycloak-ca.pem
 
-    # Cluster server interno
+    #========================== Cluster servizio interno ===========================
+    # Backend applicativo in HTTP sulla rete interna.
     - name: internal-service
       connect_timeout: 2s
       type: STRICT_DNS
@@ -113,16 +161,16 @@ static_resources:
       load_assignment:
         cluster_name: internal-service
         endpoints:
-        - lb_endpoints:
-          - endpoint:
-              address:
-                socket_address:
-                  address: internal-service
-                  port_value: 8080
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: internal-service
+                      port_value: 8080
 
 admin:
   access_log_path: "/dev/null"
   address:
     socket_address:
       address: 0.0.0.0
-      port_value: 10001
+      port_value: 10002

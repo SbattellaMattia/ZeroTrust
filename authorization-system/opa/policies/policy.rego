@@ -57,7 +57,7 @@ response := {
     "headers": {
         "x-user": auth.username,
 		"x-score": sprintf("%.2f", [auth.score]),
-        "x-access-level": access_level
+        "x-access-level": access_level,
     }
 } if {
     allow
