@@ -1,0 +1,108 @@
+[844] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 844, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:844): WARNING **: 18:25:13.262: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 18:33:12.794: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[841] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 841, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:841): WARNING **: 15:16:17.920: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 15:25:47.716: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 15:39:26.539: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 15:57:40.669: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 16:42:40.283: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 17:13:30.861: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 17:17:16.747: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 17:23:50.774: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 10:09:11.879: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[838] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 838, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:838): WARNING **: 10:32:52.553: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 10:46:33.286: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 10:59:46.656: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 11:06:49.108: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 11:10:02.859: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[840] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 840, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:840): WARNING **: 11:21:39.117: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+[839] Sandbox: CanCreateUserNamespace() clone() failure: EPERM
+[Parent 839, Main Thread] WARNING: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+: 'glib warning', file /home/buildozer/aports/community/firefox/src/firefox-142.0/toolkit/xre/nsSigHandlers.cpp:201
+
+** (firefox:839): WARNING **: 12:52:55.690: Failed to create DBus proxy for org.a11y.Bus: Failed to execute child process “dbus-launch” (No such file or directory)
+

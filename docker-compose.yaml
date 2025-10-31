@@ -18,62 +18,80 @@ services:
   # EXTERNAL CLIENT AND SERVER
   # ========================================
 
-  #Simula client esterno
-  external_client:
-    image: alpine:latest
-    container_name: external-client
-    platform: linux/amd64
-    command: sh -c "while true; do sleep 3600; done"
+  
+  allowed-server:
+    build: ./external-services/allowed-server
     networks:
       - external_net
+    ports:
+      - "8090:80"
 
+  blocked-server:
+    build: ./external-services/blocked-server
+    networks:
+      - external_net
+    ports:
+      - "8091:80"
+
+
+  #Simula client esterno
+  firefox:
+    image: jlesage/firefox:latest
+    container_name: firefox
+    cap_add:
+      - NET_ADMIN 
+    networks:
+      - external_net
+    environment:
+      - TZ=Europe/Rome
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+    ports:
+      - "5600:5800"
+    volumes:
+      - ./external-clients/config:/config:rw
 
   # ========================================
   # PERIMETRAL DEFENSE
   # ========================================
 
-  # Bastion host 
-  bastion-host:
-    image: binlab/bastion
-    container_name: bastion-host
-    platform: linux/amd64
-    hostname: bastion-host
-    restart: unless-stopped
-    expose:
-      - 22/tcp
-    ports:
-      - 22222:22/tcp
-    environment:
-      PUBKEY_AUTHENTICATION: "true"
-      GATEWAY_PORTS: "false"
-      PERMIT_TUNNEL: "false"
-      X11_FORWARDING: "false"
-      TCP_FORWARDING: "true"
-      AGENT_FORWARDING: "true"
-    volumes:
-      - ./bastion-host/authorized_keys:/var/lib/bastion/authorized_keys:ro
-      - ./bastion-host/ssh:/usr/etc/ssh:rw
-    extra_hosts:
-      - docker-host:172.17.0.1
-    networks:
-      - dmz_net
 
-  # Squid Proxy (forward proxy in DMZ)
-  squid-proxy:
-    image: ubuntu/squid:latest
-    container_name: squid-proxy
+  # Envoy Proxy (PEP) + Firewall L7 (->esterno) + Firewall L3 (->interno)
+  pep-envoy:
+    build: ./authorization-system/envoy/compose
+    container_name: pep-envoy
+    # Stranamente envoy non interpreta le variabili d'ambiente :(
     platform: linux/amd64
-    ports:
-      - "3128:3128"
-    networks:
-      - dmz_net
+    environment:
+      - DEBUG_LEVEL=info
+      - SERVICE_NAME=internal-service
+      - SERVICE_PORT=8080
+      # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
+      - SERVICE_NODE=node1
+      - SERVICE_CLUSTER=cluster1
     volumes:
-      - ./squid/squid.conf:/etc/squid/squid.conf
-    ulimits:
-      nofile:
-        soft: "65536"
-        hard: "65536"
-    command: squid -N -d 1
+      - ./authorization-system/envoy/envoy.yaml:/config/envoy.yaml
+      - ./authorization-system/envoy/secrets/oauth-token-secret.yaml:/etc/envoy/oauth-token-secret.yaml
+      - ./authorization-system/envoy/secrets/oauth-hmac-secret.yaml:/etc/envoy/oauth-hmac-secret.yaml
+      - ./authorization-system/envoy/secrets/certs:/etc/envoy/certs
+    networks:
+      external_net:
+        ipv4_address: 10.20.0.100
+      dmz_net:
+        ipv4_address: 10.21.0.100
+      internal_net:
+        ipv4_address: 10.22.0.100
+      prod_net:
+        ipv4_address: 10.23.0.100
+      dev_net:
+        ipv4_address: 10.24.0.100
+    ports:
+      - "10000:10000"   # HTTP → redirect to 10001
+      - "10001:10001"   # HTTPS → OAuth2/ExtAuthz/Router ingress
+      - "10002:10002"   # Admin 
+      - "10003:10003"   # HTTP → redirect to 10004
+      - "10004:10004"   # HTTP egress (non esposto esternamente)
+
 
   # ========================================
   # AUTHENTICATION SYSTEM
@@ -108,7 +126,17 @@ services:
       - "8081:8081"
       - "8443:8443"
     networks:
-      - dmz_net
+      external_net:
+        ipv4_address: 10.20.0.21
+      dmz_net:
+        ipv4_address: 10.21.0.21
+      internal_net:
+        ipv4_address: 10.22.0.21
+      prod_net:
+        ipv4_address: 10.23.0.21
+      dev_net:
+        ipv4_address: 10.24.0.21
+        
       
   keycloak-listener:
     build:
@@ -126,6 +154,7 @@ services:
       - keycloak
       - trust-service
     networks:
+      - dev_net
       - internal_net
       - dmz_net
 
@@ -133,33 +162,7 @@ services:
   # AUTHORIZATION SYSTEM
   # ========================================
 
-  # Envoy Proxy (PEP)
-  pep-envoy:
-    build: ./authorization-system/envoy/compose
-    container_name: pep-envoy
-    # Stranamente envoy non interpreta le variabili d'ambiente :(
-    platform: linux/amd64
-    environment:
-      - DEBUG_LEVEL=info
-      - SERVICE_NAME=internal-service
-      - SERVICE_PORT=8080
-      # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
-      - SERVICE_NODE=node1
-      - SERVICE_CLUSTER=cluster1
-    volumes:
-      - ./authorization-system/envoy/envoy.yaml:/config/envoy.yaml
-      - ./authorization-system/envoy/secrets/oauth-token-secret.yaml:/etc/envoy/oauth-token-secret.yaml
-      - ./authorization-system/envoy/secrets/oauth-hmac-secret.yaml:/etc/envoy/oauth-hmac-secret.yaml
-      - ./authorization-system/envoy/secrets/certs:/etc/envoy/certs
-    networks:
-      - internal_net
-      - dmz_net
-      - prod_net
-      - dev_net
-    ports:
-      - "10000:10000"   # HTTP → redirect
-      - "10001:10001"   # HTTPS → OAuth2/ExtAuthz/Router
-      - "10002:10002"   # Admin 
+ 
   # OPA (PDP)
   pdp-opa:
     image: openpolicyagent/opa:latest-envoy
@@ -244,7 +247,34 @@ services:
   # HOST WORKSTATIONS (Simulano PC aziendali)
   # ========================================
 
-  
+  dev-host:
+    image: jlesage/firefox:latest
+    container_name: dev-host
+    environment:
+      - TZ=Europe/Rome
+      - DISPLAY_WIDTH=1366
+      - DISPLAY_HEIGHT=768
+    networks:
+      - dev_net
+    ports:
+      - "5800:5800"   # noVNC: http://localhost:5800
+    volumes:
+      - ./hosts/dev-host/config:/config:rw
+
+
+  prod-host:
+    image: jlesage/firefox:latest
+    container_name: prod-host
+    environment:
+      - TZ=Europe/Rome
+      - DISPLAY_WIDTH=1366
+      - DISPLAY_HEIGHT=768
+    networks:
+      - prod_net
+    ports:
+      - "5700:5800"   # noVNC: http://localhost:5700
+    volumes:
+      - ./hosts/prod-host/config:/config:rw
 
 
 #====================== DA CONFIGURARE ======================
@@ -259,11 +289,26 @@ services:
 networks:
   external_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.0.0/24
   dmz_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.21.0.0/24
   internal_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.22.0.0/24
   prod_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.23.0.0/24
   dev_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.24.0.0/24
