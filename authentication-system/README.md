@@ -1,5 +1,6 @@
-
 # Keycloak come Identity Provider
+<img  alt="image" src="https://github.com/user-attachments/assets/c70e1a39-b3da-4dc6-a00e-f83a95992356" />
+
 
 Keycloak è un sistema open-source di Identity and Access Management che consente di centralizzare la gestione dell'autenticazione e degli accessi in modo scalabile e sicuro. Nel contesto di questo progetto, Keycloak assume il ruolo di Identity Provider (IdP), fungendo da punto centrale di autenticazione all'interno di un'architettura Zero Trust.
 
@@ -31,6 +32,9 @@ OpenID Connect (OIDC) è un layer di identità costruito sopra OAuth2 che aggiun
 Nel contesto di questo progetto, Keycloak agisce come **OpenID Provider**, emettendo sia access token OAuth2 che ID token OIDC. Quando un utente completa il login, Keycloak restituisce un ID Token firmato digitalmente che contiene i claim sull'identità dell'utente, permettendo a Envoy di verificarne l'autenticità senza dover ricontattare Keycloak per ogni richiesta.
 
 ## Architettura
+
+<img width="1008" height="368" alt="image" src="https://github.com/user-attachments/assets/b699d6e3-5d3a-463f-9281-ca2aa4697c68" />
+
 
 L'implementazione adotta il principio della **separazione delle responsabilità** (Separation of Concerns), che rappresenta uno dei fondamenti dello sviluppo software moderno e delle architetture Zero Trust. In questo contesto, la logica di autenticazione e quella di autorizzazione sono state deliberatamente disaccoppiate per garantire maggiore modularità, sicurezza e manutenibilità del sistema.
 
@@ -75,7 +79,7 @@ La configurazione di Keycloak per il progetto prevede l'utilizzo di un **realm d
 - **Client ID**: `envoy-proxy`
 - **Protocollo**: OpenID Connect (OIDC) su OAuth2
 - **Flusso di autenticazione**: Authorization Code Grant con PKCE (Proof Key for Code Exchange)
-- **Redirect URI**: configurato per gestire i callback OAuth2 dopo l'autenticazione dell'utente:
+- **Redirect URI**: configurato per gestire i callback OAuth2 dopo l'autenticazione dell'utente:  
  `https://pep-envoy:10001/callback` per flussi ingress  
  `https://pep-envoy:10004/callback` per flussi egress
 
