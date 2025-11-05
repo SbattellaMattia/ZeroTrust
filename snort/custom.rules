@@ -1,0 +1,23 @@
+# =======================================================
+# ICMP PING DETECTION
+# =======================================================
+
+alert icmp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] ICMP Echo Request (Ping)"; itype:8; sid:1000001; rev:1;)
+
+alert icmp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] ICMP Echo Reply"; itype:0; sid:1000002; rev:1;)
+
+alert icmp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] ICMP Timestamp Request"; itype:13; sid:1000003; rev:1;)
+
+# =======================================================
+# NMAP PORT SCANNING DETECTION
+# =======================================================
+
+alert tcp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] TCP SYN Scan"; flags:S,12; sid:1000010; rev:1;)
+
+alert tcp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] TCP FIN Scan"; flags:F,12; sid:1000011; rev:1;)
+
+alert tcp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] TCP Xmas Scan"; flags:FPU,12; sid:1000012; rev:1;)
+
+alert tcp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] TCP Null Scan"; flags:0,12; sid:1000013; rev:1;)
+
+alert icmp !10.20.0.0/24 any -> [10.21.0.0/24,10.22.0.0/24,10.23.0.0/24,10.24.0.0/24] any (msg:"[ALERT] ICMP Port Unreachable (UDP Scan Indicator)"; itype:3; icode:3; sid:1000015; rev:1;)

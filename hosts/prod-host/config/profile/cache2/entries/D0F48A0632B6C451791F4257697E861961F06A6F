@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="chrome://browser/content/contentSearchUI.css" />
     <link rel="stylesheet" href="chrome://newtab/content/css/activity-stream.css" />
   </head>
-  <!-- Cached: Fri, 31 Oct 2025 11:53:02 GMT -->
+  <!-- Cached: Wed, 05 Nov 2025 10:03:05 GMT -->
   <body class="activity-stream">
     <div id="header-asrouter-container" role="presentation"></div>
     <div id="root">
@@ -42,15 +42,15 @@ window.__STARTUP_STATE__ = {
 		"rows": [
 			{
 				"bookmarkGuid": null,
-				"frecency": 2048,
+				"frecency": 1997,
 				"guid": "wdKYCS_6Xb38",
 				"lastVisitDate": 1761835181189,
 				"title": null,
 				"url": "https://pep-envoy:10004/?_dest=allowed-server",
 				"type": "history",
+				"screenshot": "moz-page-thumb://thumbnails/?url=https%3A%2F%2Fpep-envoy%3A10004%2F%3F_dest%3Dallowed-server&revision=5315",
 				"hostname": "pep-envoy",
-				"typedBonus": true,
-				"screenshot": "moz-page-thumb://thumbnails/?url=https%3A%2F%2Fpep-envoy%3A10004%2F%3F_dest%3Dallowed-server&revision=3242"
+				"typedBonus": true
 			},
 			{
 				"isDefault": true,
@@ -696,7 +696,7 @@ window.__STARTUP_STATE__ = {
 		"blocks": {},
 		"spocs": {
 			"spocs_endpoint": "https://spocs.getpocket.com/spocs",
-			"lastUpdated": 1761911542160,
+			"lastUpdated": 1762336985441,
 			"data": {
 				"newtab_stories_1": [],
 				"newtab_stories_2": [],
@@ -1855,5 +1855,4 @@ window.__STARTUP_STATE__ = {
 	}
 };
 
-hYÙuì
-           i£HË­ÿÿÿÿ       :about:home alt-data 1;12371,script version 20250826121415  $é
+NFíï¸           i ÙHÏ‚€ÿÿÿÿ       :about:home alt-data 1;12371,script version 20250826121415  $é

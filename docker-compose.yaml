@@ -3,16 +3,18 @@ services:
   # DEBUG
   # ========================================
   debug:
-    image: curlimages/curl:latest
+    build: ./debug
     container_name: debug
     platform: linux/amd64
     stdin_open: true
     tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     networks:
       - external_net
       - dmz_net
       - internal_net
-    entrypoint: ["sh"]
 
   # ========================================
   # EXTERNAL CLIENT AND SERVER
@@ -280,6 +282,34 @@ services:
 #====================== DA CONFIGURARE ======================
       
 #SNORT
+
+    # ========================================
+  # IDS - SNORT
+  # ========================================
+  snort-ids:
+    build:
+      context: ./snort
+      dockerfile: Dockerfile
+    container_name: snort-ids
+    network_mode: host 
+    platform: linux/amd64
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+      - SYS_RESOURCE
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./snort/snort.conf:/etc/snort/snort.conf:ro
+      - ./snort/custom.rules:/etc/snort/rules/custom.rules:ro
+      - snort-logs:/var/log/snort
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
 #SPLUNK
 #FLUENTD
 
@@ -312,3 +342,7 @@ networks:
     ipam:
       config:
         - subnet: 10.24.0.0/24
+
+volumes:
+  snort-logs:
+    driver: local

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="chrome://browser/content/contentSearchUI.css" />
     <link rel="stylesheet" href="chrome://newtab/content/css/activity-stream.css" />
   </head>
-  <!-- Cached: Fri, 31 Oct 2025 11:53:01 GMT -->
+  <!-- Cached: Wed, 05 Nov 2025 10:03:06 GMT -->
   <body class="activity-stream">
     <div id="header-asrouter-container" role="presentation"></div>
     <div id="root">
@@ -42,15 +42,15 @@ window.__STARTUP_STATE__ = {
 		"rows": [
 			{
 				"bookmarkGuid": null,
-				"frecency": 7467,
+				"frecency": 7280,
 				"guid": "7Txr0Z9sa3aR",
 				"lastVisitDate": 1761906352327,
 				"title": "Profilo Studente",
 				"url": "https://pep-envoy:10001/",
 				"type": "history",
+				"screenshot": "moz-page-thumb://thumbnails/?url=https%3A%2F%2Fpep-envoy%3A10001%2F&revision=1135",
 				"hostname": "pep-envoy",
-				"typedBonus": true,
-				"screenshot": "moz-page-thumb://thumbnails/?url=https%3A%2F%2Fpep-envoy%3A10001%2F&revision=537"
+				"typedBonus": true
 			},
 			{
 				"isDefault": true,
@@ -696,7 +696,7 @@ window.__STARTUP_STATE__ = {
 		"blocks": {},
 		"spocs": {
 			"spocs_endpoint": "https://spocs.getpocket.com/spocs",
-			"lastUpdated": 1761911530957,
+			"lastUpdated": 1762336985987,
 			"data": {
 				"newtab_stories_1": [],
 				"newtab_stories_2": [],
@@ -1855,4 +1855,4 @@ window.__STARTUP_STATE__ = {
 	}
 };
 
-∆†‚           i£HÀ≠ˇˇˇˇ       :about:home alt-data 1;12371,script version 20250826121415  $»
+ù§4íπ           i ⁄HœÇÅˇˇˇˇ       :about:home alt-data 1;12371,script version 20250826121415  $…
