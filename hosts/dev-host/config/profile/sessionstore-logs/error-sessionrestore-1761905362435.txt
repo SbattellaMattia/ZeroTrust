@@ -1,2 +1,0 @@
-1761905325904	SessionStore	WARN	SessionWriter.write, Caught exception:: NotFoundError: Could not move `/config/profile/sessionstore.jsonlz4' to `/config/profile/sessionstore-backups/previous.jsonlz4': source file does not exist (NS_ERROR_FILE_NOT_FOUND) No traceback available
-1761905325904	SessionStore	ERROR	Could not write session state file : NotFoundError: Could not move `/config/profile/sessionstore.jsonlz4' to `/config/profile/sessionstore-backups/previous.jsonlz4': source file does not exist (NS_ERROR_FILE_NOT_FOUND) No traceback available

@@ -10,6 +10,8 @@ RUN apt-get update && \
 # Plugin Splunk HEC
 RUN gem install fluent-plugin-splunk-hec
 
+RUN fluent-gem install fluent-plugin-multi-format-parser
+
 # Dir utili e permessi
 RUN mkdir -p /fluentd/etc /fluentd/buffer /scripts && \
     chown -R fluent:fluent /fluentd /scripts

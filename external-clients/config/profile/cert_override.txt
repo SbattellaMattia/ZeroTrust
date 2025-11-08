@@ -1,4 +1,0 @@
-# PSM Certificate Override Settings file
-# This is a generated file!  Do not edit.
-keycloak:8443:	OID.2.16.840.1.101.3.4.2.1	45:5B:15:47:7C:AC:82:61:42:2B:52:F2:EB:E1:A4:2E:A2:73:05:25:07:E7:25:C8:15:80:0B:88:6F:0B:B3:84	
-pep-envoy:10001:	OID.2.16.840.1.101.3.4.2.1	45:5B:15:47:7C:AC:82:61:42:2B:52:F2:EB:E1:A4:2E:A2:73:05:25:07:E7:25:C8:15:80:0B:88:6F:0B:B3:84	

@@ -153,6 +153,7 @@ static_resources:
                                     - remote_ip:
                                         address_prefix: "203.0.113.0"
                                         prefix_len: 24
+          
 
 
                   #----------- FILTRO 2: OAuth2 ===========
@@ -325,9 +326,9 @@ static_resources:
                           local path = request_handle:headers():get(":path")
                           local authority = request_handle:headers():get(":authority")
                           
-                          request_handle:logInfo("=== INGRESS LUA DEBUG ===")
-                          request_handle:logInfo("Path: " .. (path or "nil"))
-                          request_handle:logInfo("Authority: " .. (authority or "nil"))
+                          -- request_handle:logInfo("=== INGRESS LUA DEBUG ===")
+                          -- request_handle:logInfo("Path: " .. (path or "nil"))
+                          -- request_handle:logInfo("Authority: " .. (authority or "nil"))
                           
                           -- Caso 1: URL assoluto (http://host:port/path o https://...)
                           if path and (path:match("^http://") or path:match("^https://")) then

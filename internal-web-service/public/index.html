@@ -13,6 +13,8 @@
 
     <section class="card">
       <div class="row"><span class="label">Utente:</span><span id="user"></span></div>
+      <div class="row"><span class="label">Ruolo:</span><span id="user-role">—</span></div>
+      <div class="row"><span class="label">IP sorgente:</span><span id="src-ip">—</span></div>
       <div class="row"><span class="label">Bio:</span><span id="bio-view"></span></div>
     </section>
 
@@ -28,18 +30,21 @@
     <section class="card info-box">
       <h3>Nota accademica</h3>
       <p>
-        Questo sistema costituisce un progetto universitario di dimostrazione dei principi di architettura Zero Trust. 
-        La bio non è persistente e risulta condivisa tra tutti i profili utente, in quanto l'obiettivo della demo 
-        è illustrare il controllo degli accessi dinamico basato su trust score:
+        Questo sistema dimostra i principi dell’architettura <strong>Zero Trust</strong> applicati a un controllo dinamico degli accessi.  
+        Il livello di accesso dipende dal <strong>trust score</strong> dell’utente:
       </p>
       <ul>
-        <li><strong>Trust score ≥ 70:</strong> accesso completo (full) — modifica consentita</li>
-        <li><strong>50 ≤ trust score &lt; 70:</strong> accesso limitato (limited) — sola lettura</li>
-        <li><strong>Trust score &lt; 50:</strong> accesso negato (deny) — nessuna visualizzazione</li>
+        <li><strong>Trust score ≥ 70:</strong> accesso completo (full)</li>
+        <li><strong>50 ≤ trust score &lt; 70:</strong> accesso limitato</li>
+        <li><strong>Trust score &lt; 50:</strong> accesso negato</li>
       </ul>
       <p>
-        L'implementazione di persistenza e isolamento per utente non rientra negli obiettivi di questa dimostrazione proof-of-concept.
+        Il punteggio finale è influenzato anche da:
       </p>
+      <ul>
+        <li><strong>Ruolo:</strong> assegna bonus o penalità in base alla responsabilità (es. admin +10, dev/prod +5, guest -5)</li>
+        <li><strong>Rete di provenienza:</strong> applica un moltiplicatore di fiducia (es. reti interne ×1.2, rete esterna ×0.9)</li>
+      </ul>
     </section>
   </main>
 
@@ -48,13 +53,24 @@
       const r = await fetch('/api/profile', { credentials: 'same-origin' });
       const data = await r.json();
 
+      // Mostra username e bio
       document.getElementById('user').textContent = data.user || '';
       document.getElementById('bio-view').textContent = data.bio || '';
 
+      // Pulisce IP (::ffff:10.21.0.100 → 10.21.0.100)
+      const ip = (data.ip || '').replace('::ffff:', '');
+      document.getElementById('src-ip').textContent = ip || '—';
+
+      // Mostra ruolo principale (il primo significativo)
+      const roles = (data.roles || []).filter(r => !r.startsWith('offline') && !r.startsWith('uma_') && !r.startsWith('default-'));
+      document.getElementById('user-role').textContent = roles.length > 0 ? roles.join(', ') : '—';
+
+      // Accesso e punteggio
       const status = document.getElementById('status');
       const canEdit = !!data.canEdit;
       status.textContent = (canEdit ? 'Accesso completo: ' : 'Accesso limitato: ') + data.score;
 
+      // Mostra o nasconde la sezione di modifica
       const editSec = document.getElementById('edit-section');
       editSec.style.display = canEdit ? 'block' : 'none';
       if (canEdit) document.getElementById('bio-input').value = data.bio || '';

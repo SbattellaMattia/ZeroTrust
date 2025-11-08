@@ -2,10 +2,11 @@ x-logging: &fluentd-logging
   logging:
     driver: fluentd
     options:
-      fluentd-address: "127.0.0.1:24224"  
+      fluentd-address: "fluentd:24224"  
       tag: "{{.Name}}.{{.ID}}"
       labels: "com.docker.compose.service,com.docker.compose.project"
       env: "ENV,ROLE"
+      fluentd-async: "true"
       fluentd-retry-wait: "1s"
       fluentd-max-retries: "3"
 
@@ -77,9 +78,8 @@ services:
     # Stranamente envoy non interpreta le variabili d'ambiente :(
     platform: linux/amd64
     environment:
+      - TZ=Europe/Rome
       - DEBUG_LEVEL=info
-      - SERVICE_NAME=internal-service
-      - SERVICE_PORT=8080
       # Varibili necessarie per la configurazione di Secret Discovery Service (SDS)
       - SERVICE_NODE=node1
       - SERVICE_CLUSTER=cluster1
@@ -128,6 +128,7 @@ services:
       - --hostname-strict=false
       - --import-realm
     environment:
+      - TZ=Europe/Rome
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
       # Essenziali per fare in modo che si abiliti https
@@ -137,7 +138,6 @@ services:
       # Per log
       - KC_EVENTS_ENABLED=true
       - KC_LOG=console                # dove scrivere (target)
-      - KC_LOG_LEVEL=INFO             # livello root
       - KC_LOG_LEVEL_ORG_KEYCLOAK_EVENTS=DEBUG  # login riusciti visibili
     volumes:
       #Preso lo stesso certificato di envoy (solo proof of concept)
@@ -159,27 +159,6 @@ services:
         ipv4_address: 10.24.0.21
     depends_on:
       - fluentd
-      
-  keycloak-listener:
-    build:
-      context: ./authentication-system/keycloak-listener
-      dockerfile: Dockerfile
-    container_name: keycloak-listener
-    platform: linux/amd64
-    environment:
-      KEYCLOAK_BASE: "http://keycloak:8081"
-      KEYCLOAK_REALM: "zerotrust"
-      KEYCLOAK_ADMIN_USER: "admin"
-      KEYCLOAK_ADMIN_PASS: "admin"
-      TRUST_URL: "http://trust-service:5000/event"
-    depends_on:
-      - keycloak
-      - trust-service
-      - fluentd
-    networks:
-      - dev_net
-      - internal_net
-      - dmz_net
 
   # ========================================
   # AUTHORIZATION SYSTEM
@@ -220,36 +199,16 @@ services:
     container_name: trust-service
     platform: linux/amd64
     environment:
-      # Utente predisposto, diverso dall'admin di Postgres
-      DATABASE_URL: "postgresql://trust_user:trust_pass@postgres:5432/companydb"
       T_SCALE_MINUTES: "1440" # default: 1 giorno
       PORT: "5000"
     networks:
+      - mgmt_net
       - internal_net
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
       - fluentd
 
-  # Postgres (DBMS interno)
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    platform: linux/amd64
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: companydb
-    networks:
-      - internal_net
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./authorization-system/postgres/data:/var/lib/postgresql/data
-      - ./authorization-system/postgres/init:/docker-entrypoint-initdb.d
-
-  #Sito aziendale
   internal-service:
     <<: *fluentd-logging
     build:

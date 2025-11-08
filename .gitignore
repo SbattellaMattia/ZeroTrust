@@ -1,4 +1,4 @@
 .env
 authorization-system/envoy/secrets/
 authentication-system/keycloak/data/h2/
-authorization-system/postgres/data/
+management/splunk/splunk-apps/
