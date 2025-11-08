@@ -1,3 +1,14 @@
+x-logging: &fluentd-logging
+  logging:
+    driver: fluentd
+    options:
+      fluentd-address: "127.0.0.1:24224"  
+      tag: "{{.Name}}.{{.ID}}"
+      labels: "com.docker.compose.service,com.docker.compose.project"
+      env: "ENV,ROLE"
+      fluentd-retry-wait: "1s"
+      fluentd-max-retries: "3"
+
 services:
   # ========================================
   # DEBUG
@@ -60,6 +71,7 @@ services:
 
   # Envoy Proxy (PEP) + Firewall L7 (->esterno) + Firewall L3 (->interno)
   pep-envoy:
+    <<: *fluentd-logging
     build: ./authorization-system/envoy/compose
     container_name: pep-envoy
     # Stranamente envoy non interpreta le variabili d'ambiente :(
@@ -93,7 +105,8 @@ services:
       - "10002:10002"   # Admin 
       - "10003:10003"   # HTTP → redirect to 10004
       - "10004:10004"   # HTTP egress (non esposto esternamente)
-
+    depends_on:
+      - fluentd
 
   # ========================================
   # AUTHENTICATION SYSTEM
@@ -101,6 +114,7 @@ services:
 
   # Keycloak (IdP per autenticazione)
   keycloak:
+    <<: *fluentd-logging
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
     platform: linux/amd64
@@ -120,6 +134,11 @@ services:
       - KC_HTTPS_CERTIFICATE_FILE=/etc/keycloak/certs/server.crt
       - KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/keycloak/certs/server.key
       - KC_PROXY=edge
+      # Per log
+      - KC_EVENTS_ENABLED=true
+      - KC_LOG=console                # dove scrivere (target)
+      - KC_LOG_LEVEL=INFO             # livello root
+      - KC_LOG_LEVEL_ORG_KEYCLOAK_EVENTS=DEBUG  # login riusciti visibili
     volumes:
       #Preso lo stesso certificato di envoy (solo proof of concept)
       - ./authorization-system/envoy/secrets/certs:/etc/keycloak/certs
@@ -138,7 +157,8 @@ services:
         ipv4_address: 10.23.0.21
       dev_net:
         ipv4_address: 10.24.0.21
-        
+    depends_on:
+      - fluentd
       
   keycloak-listener:
     build:
@@ -155,6 +175,7 @@ services:
     depends_on:
       - keycloak
       - trust-service
+      - fluentd
     networks:
       - dev_net
       - internal_net
@@ -167,6 +188,7 @@ services:
  
   # OPA (PDP)
   pdp-opa:
+    <<: *fluentd-logging
     image: openpolicyagent/opa:latest-envoy
     container_name: pdp-opa
     platform: linux/amd64
@@ -186,9 +208,12 @@ services:
       - ./authorization-system/opa/policies:/policies:ro
     ports:
       - "9191:9191" # gRPC plugin port OPA -> Envoy gRPC
+    depends_on:
+      - fluentd
 
   #Calcola il livello di fiducia e dialoga con il db
   trust-service:
+    <<: *fluentd-logging
     build:
       context: ./authorization-system/trust-service
       dockerfile: Dockerfile
@@ -205,6 +230,7 @@ services:
       - "5000:5000"
     depends_on:
       - postgres
+      - fluentd
 
   # Postgres (DBMS interno)
   postgres:
@@ -225,6 +251,7 @@ services:
 
   #Sito aziendale
   internal-service:
+    <<: *fluentd-logging
     build:
       context: ./internal-web-service
     image: internal-service:latest
@@ -237,6 +264,8 @@ services:
       - dmz_net
     ports:
       - "8080:8080"
+    depends_on:
+      - fluentd
   #Per aggiungere healthcheck decommentare le righe sottostanti
   #healthcheck:
   #  test: ["CMD", "node", "healthcheck.js"]
@@ -250,6 +279,7 @@ services:
   # ========================================
 
   dev-host:
+    <<: *fluentd-logging
     image: jlesage/firefox:latest
     container_name: dev-host
     environment:
@@ -262,9 +292,12 @@ services:
       - "5800:5800"   # noVNC: http://localhost:5800
     volumes:
       - ./hosts/dev-host/config:/config:rw
-
+    depends_on:
+      - fluentd
+      
 
   prod-host:
+    <<: *fluentd-logging
     image: jlesage/firefox:latest
     container_name: prod-host
     environment:
@@ -277,18 +310,18 @@ services:
       - "5700:5800"   # noVNC: http://localhost:5700
     volumes:
       - ./hosts/prod-host/config:/config:rw
+    depends_on:
+      - fluentd
 
 
-#====================== DA CONFIGURARE ======================
-      
-#SNORT
-
-    # ========================================
-  # IDS - SNORT
   # ========================================
+  # Management
+  # ========================================
+      
+  # IDS - SNORT
   snort-ids:
     build:
-      context: ./snort
+      context: ./management/snort
       dockerfile: Dockerfile
     container_name: snort-ids
     network_mode: host 
@@ -301,17 +334,72 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - ./snort/snort.conf:/etc/snort/snort.conf:ro
-      - ./snort/custom.rules:/etc/snort/rules/custom.rules:ro
-      - snort-logs:/var/log/snort
+      - ./management/snort/snort.conf:/etc/snort/snort.conf:ro
+      - ./management/snort/custom.rules:/etc/snort/rules/custom.rules:ro
+      - snort-logs:/var/log/snort  #path dove salva i log snort
     logging:
       driver: "json-file"
       options:
         max-size: "100m"
         max-file: "10"
+    depends_on:
+      - fluentd
 
-#SPLUNK
-#FLUENTD
+
+  # SPLUNK
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      TZ: "Europe/Rome"
+      SPLUNK_GENERAL_TERMS: "--accept-sgt-current-at-splunk-com"
+      SPLUNK_START_ARGS: "--accept-license"
+      SPLUNK_PASSWORD: changeme123
+      SPLUNK_ENABLE_HEC: "true"
+      SPLUNK_HEC_TOKEN: "f276f7d2-1e16-4520-a999-a935a465299f"
+      SPLUNK_HEC_PORT: "8088"
+      SPLUNK_HEC_SSL: "false"
+    ports:
+      - "18000:8000"
+      - "18088:8088"
+      - "18089:8089"  # Management port
+    networks:
+       mgmt_net:
+           ipv4_address: 10.25.0.10
+    volumes:
+      - splunk-data:/opt/splunk
+      - ./management/splunk/splunk-apps/zt_base:/opt/splunk/etc/apps/
+      - /var/lib/docker/containers:/containers:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    depends_on:
+      - fluentd
+  
+
+  # FLUENTD
+  fluentd:
+    build: ./management/fluentd
+    container_name: fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - mgmt_net
+    restart: unless-stopped
+    volumes:
+      - ./management/fluentd/conf:/fluentd/etc:ro
+      - ./management/fluentd/buffer:/fluentd/buffer
+      - ./management/fluentd/state:/fluentd/state
+      # Volume condiviso, legge i log di snort
+      - snort-logs:/var/log/snort:ro 
+    environment:
+      - KEYCLOAK_BASE=http://keycloak:8081
+      - KEYCLOAK_REALM=zerotrust
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASS=admin
+      - KC_POLL_INTERVAL=10
 
 # ========================================
 # NET
@@ -342,7 +430,13 @@ networks:
     ipam:
       config:
         - subnet: 10.24.0.0/24
+  mgmt_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.25.0.0/24
 
 volumes:
   snort-logs:
     driver: local
+  splunk-data:

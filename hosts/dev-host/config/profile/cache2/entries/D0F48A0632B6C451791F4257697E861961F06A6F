@@ -15,13 +15,13 @@
     <link rel="stylesheet" href="chrome://browser/content/contentSearchUI.css" />
     <link rel="stylesheet" href="chrome://newtab/content/css/activity-stream.css" />
   </head>
-  <!-- Cached: Wed, 05 Nov 2025 10:03:06 GMT -->
+  <!-- Cached: Sat, 08 Nov 2025 15:57:25 GMT -->
   <body class="activity-stream">
     <div id="header-asrouter-container" role="presentation"></div>
     <div id="root">
-      <div class="has-search shortcuts-refresh no-recommended-stories"><menu class="personalizeButtonWrapper"><span><button class="personalize-button" data-l10n-id="newtab-customize-panel-icon-button"><div><img role="presentation" src="chrome://global/skin/icons/edit-outline.svg"/></div><label data-l10n-id="newtab-customize-panel-icon-button-label"></label></button><div class="customize-menu" role="dialog" data-l10n-id="newtab-settings-dialog-label"><div class="close-button-wrapper"><button class="close-button" data-l10n-id="newtab-custom-close-button"></button></div><div class="home-section"><div class="wallpapers-section"><div><div class="category-header"><h2 data-l10n-id="newtab-wallpaper-title"></h2><button class="wallpapers-reset" data-l10n-id="newtab-wallpaper-reset"></button></div><div role="grid" aria-label="Wallpaper category selection. Use arrow keys to navigate."><fieldset class="category-list"><div><button id="abstracts" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/18c7861f-0c9d-48d4-a98c-fb8999e331bd.avif)" class="wallpaper-input" tabindex="0"></button><label for="abstracts" data-l10n-id="newtab-wallpaper-category-title-abstract">newtab-wallpaper-category-title-abstract</label></div><div><button id="solid-colors" style="background-color:#76C1FF" class="wallpaper-input" tabindex="-1"></button><label for="solid-colors" data-l10n-id="newtab-wallpaper-category-title-colors">newtab-wallpaper-category-title-colors</label></div><div><button id="photographs" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/e94b1e49-c518-40d6-98e3-dffab6cc370d.avif)" class="wallpaper-input" tabindex="-1"></button><label for="photographs" data-l10n-id="newtab-wallpaper-category-title-photographs">newtab-wallpaper-category-title-photographs</label></div><div><button id="celestial" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/55b678ff-15c3-49d5-bdbc-40f8413cfb8a.avif)" class="wallpaper-input" tabindex="-1"></button><label for="celestial" data-l10n-id="newtab-wallpaper-category-title-celestial">newtab-wallpaper-category-title-celestial</label></div><div><button id="custom-wallpaper" style="background-color:" class="wallpaper-input theme-custom-wallpaper" tabindex="-1" aria-errormessage="customWallpaperError"></button><label for="custom-wallpaper" data-l10n-id="newtab-wallpaper-upload-image">newtab-wallpaper-upload-image</label></div></fieldset></div></div></div><span class="divider" role="separator"></span><div class="settings-toggles"><div id="shortcuts-section" class="section"><moz-toggle id="shortcuts-toggle" pressed="true" onToggle="function() {
+      <div class="has-search shortcuts-refresh no-recommended-stories"><menu class="personalizeButtonWrapper"><span><button class="personalize-button" data-l10n-id="newtab-customize-panel-icon-button"><div><img role="presentation" src="chrome://global/skin/icons/edit-outline.svg"/></div><label data-l10n-id="newtab-customize-panel-icon-button-label"></label></button><div class="customize-menu" role="dialog" data-l10n-id="newtab-settings-dialog-label"><div class="close-button-wrapper"><button class="close-button" data-l10n-id="newtab-custom-close-button"></button></div><div class="home-section"><div class="wallpapers-section"><div><div class="category-header"><h2 data-l10n-id="newtab-wallpaper-title"></h2><button class="wallpapers-reset" data-l10n-id="newtab-wallpaper-reset"></button></div><div role="grid" aria-label="Wallpaper category selection. Use arrow keys to navigate."><fieldset class="category-list"><div><button id="abstracts" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/18c7861f-0c9d-48d4-a98c-fb8999e331bd.avif)" class="wallpaper-input" tabindex="0"></button><label for="abstracts" data-l10n-id="newtab-wallpaper-category-title-abstract">newtab-wallpaper-category-title-abstract</label></div><div><button id="solid-colors" style="background-color:#76C1FF" class="wallpaper-input" tabindex="-1"></button><label for="solid-colors" data-l10n-id="newtab-wallpaper-category-title-colors">newtab-wallpaper-category-title-colors</label></div><div><button id="photographs" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/e94b1e49-c518-40d6-98e3-dffab6cc370d.avif)" class="wallpaper-input" tabindex="-1"></button><label for="photographs" data-l10n-id="newtab-wallpaper-category-title-photographs">newtab-wallpaper-category-title-photographs</label></div><div><button id="firefox" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/6f7e2155-df50-4917-81fd-9c6f16e14965.svg)" class="wallpaper-input" tabindex="-1"></button><label for="firefox"></label></div><div><button id="celestial" style="background-image:url(https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/55b678ff-15c3-49d5-bdbc-40f8413cfb8a.avif)" class="wallpaper-input" tabindex="-1"></button><label for="celestial" data-l10n-id="newtab-wallpaper-category-title-celestial">newtab-wallpaper-category-title-celestial</label></div><div><button id="custom-wallpaper" style="background-color:" class="wallpaper-input theme-custom-wallpaper" tabindex="-1" aria-errormessage="customWallpaperError"></button><label for="custom-wallpaper" data-l10n-id="newtab-wallpaper-upload-image">newtab-wallpaper-upload-image</label></div></fieldset></div></div></div><span class="divider" role="separator"></span><div class="settings-toggles"><div id="shortcuts-section" class="section"><moz-toggle id="shortcuts-toggle" pressed="true" onToggle="function() {
     [native code]
-}" data-preference="feeds.topsites" data-eventSource="TOP_SITES" data-l10n-id="newtab-custom-shortcuts-toggle"><div slot="nested"><div class="more-info-top-wrapper"><div class="more-information"><select id="row-selector" class="selector" name="row-count" data-preference="topSitesRows" aria-labelledby="custom-shortcuts-title"><option selected="" value="1" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 1}"></option><option value="2" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 2}"></option><option value="3" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 3}"></option><option value="4" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 4}"></option></select></div></div></div></moz-toggle></div></div><span class="divider" role="separator"></span><div><button id="settings-link" class="external-link" data-l10n-id="newtab-custom-settings"></button></div></div></div></span></menu><div class="weatherWrapper"></div><div class="mobileDownloadPromoWrapper "></div><div class="outer-wrapper ds-outer-wrapper-breakpoint-override visible-logo"><main class="newtab-main"><div class="non-collapsible-section"><div class="search-wrapper"><h1 class="logo-and-wordmark-wrapper"><div class="logo-and-wordmark" role="img" data-l10n-id="newtab-logo-and-wordmark"><div class="logo"></div><div class="wordmark"></div></div></h1><div class="search-inner-wrapper"><button class="search-handoff-button" tabindex="-1"><div class="fake-textbox"></div><input type="search" class="fake-editable" tabindex="-1" aria-hidden="true"/><div class="fake-caret"></div></button></div></div></div><div class="body-wrapper on"><div class="discovery-stream ds-layout ds-layout-topsites"><div class="ds-column ds-column-12"><div class="ds-column-grid"><div><div class="ds-top-sites"><section class="collapsible-section top-sites" data-section-id="topsites"><div class="section-top-bar"><h2 class="section-title-container " style="visibility:hidden"><span class="section-title"><span data-l10n-id="newtab-section-header-topsites"></span></span></h2></div><div><div class="top-sites-list-wrapper"><ul role="group" aria-label="Shortcuts" class="top-sites-list"><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://pep-envoy:10004/?_dest=internal-service" tabindex="0" draggable="true" data-is-sponsored-link="false" title="pep-envoy"><div class="tile" aria-hidden="true"><div class="icon-wrapper letter-fallback" data-fallback="p" style="background-color:#004CA4"><div class=""></div></div></div><div class="title"><span class="title-label" dir="auto">pep-envoy</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;pep-envoy&quot;}" class="context-menu-button icon" tabindex="0"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.wikipedia.org/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="Wikipedia"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="W"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/wikipedia-org@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Wikipedia</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Wikipedia&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.youtube.com/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="YouTube"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="Y"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/youtube-com@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">YouTube</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;YouTube&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.reddit.com/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="Reddit"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="R"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/reddit-com@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Reddit</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Reddit&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://addons.mozilla.org/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="Add-ons for Firefox"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="A"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/addons-mozilla@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Add-ons for Firefox</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Add-ons for Firefox&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer add-button "><div class="top-site-inner"><a class="top-site-button" tabindex="-1" draggable="true" data-is-sponsored-link="false" data-l10n-id="newtab-topsites-add-shortcut-title"><div class="tile" aria-hidden="true"><div class="icon-wrapper"><div class=""></div></div></div><div class="title"><span class="title-label" dir="auto" data-l10n-id="newtab-topsites-add-shortcut-label"><br/></span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div class="topsite-impression-observer"></div></div></li></ul></div><div class="edit-topsites-wrapper"></div></div></section></div></div></div></div><style data-styles="[[null]]"></style></div><div class="discovery-stream ds-layout "><div class="ds-column ds-column-12"><div class="ds-column-grid"><div></div></div></div><style data-styles="[[null]]"></style></div></div></main><aside></aside></div></div>
+}" data-preference="feeds.topsites" data-eventSource="TOP_SITES" data-l10n-id="newtab-custom-shortcuts-toggle"><div slot="nested"><div class="more-info-top-wrapper"><div class="more-information"><select id="row-selector" class="selector" name="row-count" data-preference="topSitesRows" aria-labelledby="custom-shortcuts-title"><option selected="" value="1" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 1}"></option><option value="2" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 2}"></option><option value="3" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 3}"></option><option value="4" data-l10n-id="newtab-custom-row-selector" data-l10n-args="{&quot;num&quot;: 4}"></option></select></div></div></div></moz-toggle></div></div><span class="divider" role="separator"></span><div><button id="settings-link" class="external-link" data-l10n-id="newtab-custom-settings"></button></div></div></div></span></menu><div class="weatherWrapper"></div><div class="mobileDownloadPromoWrapper "></div><div class="outer-wrapper ds-outer-wrapper-breakpoint-override visible-logo"><main class="newtab-main"><div class="non-collapsible-section"><div class="search-wrapper"><h1 class="logo-and-wordmark-wrapper"><div class="logo-and-wordmark" role="img" data-l10n-id="newtab-logo-and-wordmark"><div class="logo"></div><div class="wordmark"></div></div></h1><div class="search-inner-wrapper"><button class="search-handoff-button" tabindex="-1"><div class="fake-textbox"></div><input type="search" class="fake-editable" tabindex="-1" aria-hidden="true"/><div class="fake-caret"></div></button></div></div></div><div class="body-wrapper on"><div class="discovery-stream ds-layout ds-layout-topsites"><div class="ds-column ds-column-12"><div class="ds-column-grid"><div><div class="ds-top-sites"><section class="collapsible-section top-sites" data-section-id="topsites"><div class="section-top-bar"><h2 class="section-title-container " style="visibility:hidden"><span class="section-title"><span data-l10n-id="newtab-section-header-topsites"></span></span></h2></div><div><div class="top-sites-list-wrapper"><ul role="group" aria-label="Shortcuts" class="top-sites-list"><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.wikipedia.org/" tabindex="0" draggable="true" data-is-sponsored-link="false" title="Wikipedia"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="W"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/wikipedia-org@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Wikipedia</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Wikipedia&quot;}" class="context-menu-button icon" tabindex="0"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.youtube.com/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="YouTube"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="Y"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/youtube-com@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">YouTube</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;YouTube&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://www.reddit.com/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="Reddit"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="R"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/reddit-com@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Reddit</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Reddit&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer"><div class="top-site-inner"><a class="top-site-button" href="https://addons.mozilla.org/" tabindex="-1" draggable="true" data-is-sponsored-link="false" title="Add-ons for Firefox"><div class="tile" aria-hidden="true"><div class="icon-wrapper" data-fallback="A"><div class="top-site-icon rich-icon" style="background-image:url(chrome://activity-stream/content/data/content/tippytop/images/addons-mozilla@2x.png)"></div></div></div><div class="title"><span class="title-label" dir="auto">Add-ons for Firefox</span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div><button aria-haspopup="true" data-l10n-id="newtab-menu-content-tooltip" data-l10n-args="{&quot;title&quot;:&quot;Add-ons for Firefox&quot;}" class="context-menu-button icon" tabindex="-1"></button></div><div class="topsite-impression-observer"></div></div></li><li class="top-site-outer add-button "><div class="top-site-inner"><a class="top-site-button" tabindex="-1" draggable="true" data-is-sponsored-link="false" data-l10n-id="newtab-topsites-add-shortcut-title"><div class="tile" aria-hidden="true"><div class="icon-wrapper"><div class=""></div></div></div><div class="title"><span class="title-label" dir="auto" data-l10n-id="newtab-topsites-add-shortcut-label"><br/></span><span class="sponsored-label" data-l10n-id="newtab-topsite-sponsored"></span></div></a><div class="topsite-impression-observer"></div></div></li></ul></div><div class="edit-topsites-wrapper"></div></div></section></div></div></div></div><style data-styles="[[null]]"></style></div><div class="discovery-stream ds-layout "><div class="ds-column ds-column-12"><div class="ds-column-grid"><div></div></div></div><style data-styles="[[null]]"></style></div></div></main><aside></aside></div></div>
     </div>
     <div id="footer-asrouter-container" role="presentation"></div>
     <script src="about:home?jscache"></script>
@@ -40,18 +40,6 @@ window.__STARTUP_STATE__ = {
 	"TopSites": {
 		"initialized": true,
 		"rows": [
-			{
-				"bookmarkGuid": null,
-				"frecency": 2072,
-				"guid": "10jzo52xFGxW",
-				"lastVisitDate": 1761911639476,
-				"title": null,
-				"url": "https://pep-envoy:10004/?_dest=internal-service",
-				"type": "history",
-				"screenshot": "moz-page-thumb://thumbnails/?url=https%3A%2F%2Fpep-envoy%3A10004%2F%3F_dest%3Dinternal-service&revision=55",
-				"hostname": "pep-envoy",
-				"typedBonus": true
-			},
 			{
 				"isDefault": true,
 				"url": "https://www.wikipedia.org/",
@@ -696,7 +684,7 @@ window.__STARTUP_STATE__ = {
 		"blocks": {},
 		"spocs": {
 			"spocs_endpoint": "https://spocs.getpocket.com/spocs",
-			"lastUpdated": 1762336985888,
+			"lastUpdated": 1762616146574,
 			"data": {
 				"newtab_stories_1": [],
 				"newtab_stories_2": [],
@@ -895,6 +883,22 @@ window.__STARTUP_STATE__ = {
 			},
 			{
 				"theme": "dark",
+				"title": "firefox-b",
+				"schema": 1762451289464,
+				"category": "firefox",
+				"attachment": {
+					"hash": "0483fd7bb1054d61301e9fcb2752009a6466f5213933f72dddd66ff909e239a2",
+					"size": 286845,
+					"filename": "desktop-wallpaper-b-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/6f7e2155-df50-4917-81fd-9c6f16e14965.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "1d43f5a1-64bd-4ad4-b825-88a89878662f",
+				"last_modified": 1762459339482,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/6f7e2155-df50-4917-81fd-9c6f16e14965.svg"
+			},
+			{
+				"theme": "dark",
 				"title": "starry-canyon",
 				"schema": 1744046191375,
 				"category": "photographs",
@@ -995,6 +999,22 @@ window.__STARTUP_STATE__ = {
 				"last_modified": 1718647622932
 			},
 			{
+				"theme": "light",
+				"title": "firefox-f",
+				"schema": 1762456642236,
+				"category": "firefox",
+				"attachment": {
+					"hash": "07e565c12279637b52212d1cf0d4f23039e743e6623896f7e72bc1e6f05be974",
+					"size": 6463,
+					"filename": "desktop-wallpaper-f-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/9b9d40c7-a3bf-4058-836a-2ce378e8daf5.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "2bf99683-cde8-438b-9f8e-a1222dc7f59c",
+				"last_modified": 1762459339496,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/9b9d40c7-a3bf-4058-836a-2ce378e8daf5.svg"
+			},
+			{
 				"theme": "dark",
 				"title": "dark-mountain",
 				"schema": 1718637174316,
@@ -1023,6 +1043,22 @@ window.__STARTUP_STATE__ = {
 			},
 			{
 				"theme": "dark",
+				"title": "firefox-e",
+				"schema": 1762451428827,
+				"category": "firefox",
+				"attachment": {
+					"hash": "fe1cb48a30da9b05ba14b550918f708953ee6e44fa5a878bcbc5d3d7963176ad",
+					"size": 4567,
+					"filename": "desktop-wallpaper-e-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/0b039df1-971b-445a-84f6-6a15da08940e.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "2e468f89-ac6a-474f-a789-5de0be601887",
+				"last_modified": 1762459339477,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/0b039df1-971b-445a-84f6-6a15da08940e.svg"
+			},
+			{
+				"theme": "dark",
 				"title": "dark-green",
 				"schema": 1718644346535,
 				"category": "solid-colors",
@@ -1030,6 +1066,22 @@ window.__STARTUP_STATE__ = {
 				"solid_color": "#19310D",
 				"id": "35f8a180-8579-461d-be72-3d5d889dba62",
 				"last_modified": 1718647622929
+			},
+			{
+				"theme": "light",
+				"title": "firefox-c",
+				"schema": 1762451342038,
+				"category": "firefox",
+				"attachment": {
+					"hash": "7785790af185a3eca30177b678ab590773b209149dc14167a61044f8abdc7e1a",
+					"size": 14552,
+					"filename": "desktop-wallpaper-c-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/ae9afcad-83a6-49c5-91b3-8fbea798b88f.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "429c288c-8d92-4baa-aefb-a04719882454",
+				"last_modified": 1762459339487,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/ae9afcad-83a6-49c5-91b3-8fbea798b88f.svg"
 			},
 			{
 				"theme": "light",
@@ -1069,6 +1121,22 @@ window.__STARTUP_STATE__ = {
 				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/6b8eb3cf-f232-4c7b-a179-afd174555134.avif"
 			},
 			{
+				"theme": "dark",
+				"title": "firefox-a",
+				"schema": 1762457227299,
+				"category": "firefox",
+				"attachment": {
+					"hash": "dfdeb8a64fc3a5c9d160472bc10467acc3e3ffba51da05c7b222a1315dd8a1f4",
+					"size": 19020,
+					"filename": "desktop-wallpaper-a-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/e08c3e8c-4bda-48e4-8f36-a1d203f46536.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "451090be-cdf1-49fc-b1f3-bd2f3b4ac34d",
+				"last_modified": 1762459339500,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/e08c3e8c-4bda-48e4-8f36-a1d203f46536.svg"
+			},
+			{
 				"theme": "light",
 				"title": "orange",
 				"schema": 1718644150837,
@@ -1104,6 +1172,22 @@ window.__STARTUP_STATE__ = {
 				"id": "604378cd-ff54-4219-bed3-137889283c5e",
 				"last_modified": 1718906680002,
 				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/becfadf4-4c2d-4fad-bbbc-b060d12277e5.avif"
+			},
+			{
+				"theme": "light",
+				"title": "firefox-d",
+				"schema": 1762451361798,
+				"category": "firefox",
+				"attachment": {
+					"hash": "74988ebbc20bbc957f9b082793fea4f667e307aea3e873ba01a4f094e26e8452",
+					"size": 26913,
+					"filename": "desktop-wallpaper-d-1920x1080.svg",
+					"location": "main-workspace/newtab-wallpapers-v2/3640c0ff-19a2-4f7b-a06a-fdc2232ddd4a.svg",
+					"mimetype": "image/svg+xml"
+				},
+				"id": "62aa72d9-b9f3-4f29-88f5-5120ee004e7c",
+				"last_modified": 1762459339491,
+				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/3640c0ff-19a2-4f7b-a06a-fdc2232ddd4a.svg"
 			},
 			{
 				"theme": "light",
@@ -1514,8 +1598,9 @@ window.__STARTUP_STATE__ = {
 				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/966b18ad-3733-41c4-92f6-c89cdf1381d0.avif"
 			},
 			{
+				"theme": "dark",
 				"title": "blue-purple",
-				"schema": 1741985046914,
+				"schema": 1756865736197,
 				"category": "abstracts",
 				"fluent_id": "newtab-wallpaper-abstract-blue-purple",
 				"attachment": {
@@ -1536,7 +1621,7 @@ window.__STARTUP_STATE__ = {
 					}
 				},
 				"id": "b33cf5ec-52c4-4220-be05-1a3d4c998443",
-				"last_modified": 1742232562519,
+				"last_modified": 1762459339471,
 				"wallpaperUrl": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/newtab-wallpapers-v2/036ac885-33cb-41db-bcbb-52dd49254a12.avif"
 			},
 			{
@@ -1834,6 +1919,7 @@ window.__STARTUP_STATE__ = {
 			"abstracts",
 			"solid-colors",
 			"photographs",
+			"firefox",
 			"celestial",
 			"custom-wallpaper"
 		],
@@ -1855,4 +1941,4 @@ window.__STARTUP_STATE__ = {
 	}
 };
 
-/ÒÌ∂¬           i ⁄HœÇÅˇˇˇˇ       :about:home alt-data 1;12373,script version 20250826121415  $Ì
+–øî≤<´           iheH“y‡ˇˇˇˇ       :about:home alt-data 1;11847,script version 20250826121415  0˝
