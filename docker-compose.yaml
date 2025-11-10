@@ -2,7 +2,7 @@ x-logging: &fluentd-logging
   logging:
     driver: fluentd
     options:
-      fluentd-address: "fluentd:24224"  
+      fluentd-address: "127.0.0.1:24224"  
       tag: "{{.Name}}.{{.ID}}"
       labels: "com.docker.compose.service,com.docker.compose.project"
       env: "ENV,ROLE"

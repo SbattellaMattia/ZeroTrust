@@ -1,7 +1,7 @@
 import os, time, math
 from flask import Flask, jsonify, request
 import splunk_client
-import scoring  # usa la tua mappa impatti e baseline
+import scoring 
 
 T_SCALE_MINUTES = float(os.getenv("T_SCALE_MINUTES", "1440"))
 WINDOW_MIN = float(os.getenv("WINDOW_MIN", "1440"))  # finestra log, es. 24h
@@ -36,26 +36,24 @@ def _is_work_time(epoch_seconds: float) -> bool:
 def score_dynamic(username):
     base = scoring.get_baseline_for(username)
     now = time.time()
-
-    # pzionale limite superiore temporale (epoch secondi)
-    latest_ts = request.args.get("latest_ts", type=float)
     earliest = f"-{int(WINDOW_MIN)}m"
 
+    # Ottieni eventi utente da Splunk
     events = splunk_client.get_user_events(
         username, earliest=earliest, latest="now"
     )
     events.sort(key=lambda e: float(e.get("_time", e.get("ts", now))))
-
-    # Se latest_ts è passato, tieni solo gli eventi con _time <= latest_ts
-    if latest_ts:
-        events = [e for e in events if float(e.get("_time", now)) <= latest_ts]
 
     score = base
     details = []
     fails = 0
 
     for ev in events:
-        event_norm = scoring.normalize_event(ev.get("event"), sourcetype=ev.get("sourcetype"))
+        event_norm = scoring.normalize_event(
+            ev.get("event"), sourcetype=ev.get("sourcetype")
+        )
+
+        # Gestione login falliti consecutivi
         if event_norm == "login_failed":
             fails += 1
             if fails % 3 == 0:
@@ -63,6 +61,7 @@ def score_dynamic(username):
         elif event_norm == "login_success":
             fails = 0
 
+        # Calcola impatto evento
         impact = scoring.event_impact(
             event=event_norm,
             sourcetype=ev.get("sourcetype"),
@@ -71,12 +70,14 @@ def score_dynamic(username):
         )
 
         ts_ev = float(ev.get("_time", now))
+
+        # Penalità o bonus in base all’orario
         if event_norm == "login_success":
             if not _is_work_time(ts_ev):
                 impact = scoring.IMPACTS.get("login_off_hours", 0)
                 event_norm = "login_off_hours"
-        
 
+        # Decadimento esponenziale nel tempo
         minutes_ago = max((now - ts_ev) / 60.0, 0.0)
         weight = math.exp(-minutes_ago / T_SCALE_MINUTES)
         weighted = float(impact) * weight

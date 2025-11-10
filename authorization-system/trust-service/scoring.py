@@ -7,7 +7,7 @@ from typing import Optional
 
 def get_baseline_for(username: str) -> float:
     # baseline fissa
-    return float(os.getenv("TS_BASELINE", "80"))
+    return float(os.getenv("TS_BASELINE", str(BASELINE)))
 
 
 
@@ -21,7 +21,7 @@ IMPACTS = {
     "login_failed_streak3": -30,
 }
 
-BASELINE = 80
+BASELINE = 70
 TAU_SECONDS = 24 * 3600  # decadimento 24h
 T_SCALE_MINUTES = float(os.getenv("T_SCALE_MINUTES", "2"))  # 1440 per 1 giorno
 

@@ -149,7 +149,7 @@ static_resources:
                                     # AGGIUNGERE/RIMUOVERE IP BLOCCATI QUI
                                     - remote_ip:
                                         address_prefix: "10.20.0.60"
-                                        prefix_len: 24
+                                        prefix_len: 32
                                     #- remote_ip:
                                         #address_prefix: "altro indirizzo"
                                         #prefix_len: 24

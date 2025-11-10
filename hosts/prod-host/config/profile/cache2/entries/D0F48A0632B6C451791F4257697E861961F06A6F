@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="chrome://browser/content/contentSearchUI.css" />
     <link rel="stylesheet" href="chrome://newtab/content/css/activity-stream.css" />
   </head>
-  <!-- Cached: Sat, 08 Nov 2025 22:41:24 GMT -->
+  <!-- Cached: Mon, 10 Nov 2025 17:18:20 GMT -->
   <body class="activity-stream">
     <div id="header-asrouter-container" role="presentation"></div>
     <div id="root">
@@ -684,7 +684,7 @@ window.__STARTUP_STATE__ = {
 		"blocks": {},
 		"spocs": {
 			"spocs_endpoint": "https://spocs.getpocket.com/spocs",
-			"lastUpdated": 1762640030965,
+			"lastUpdated": 1762795095343,
 			"data": {
 				"newtab_stories_1": [],
 				"newtab_stories_2": [],
@@ -1941,4 +1941,4 @@ window.__STARTUP_STATE__ = {
 	}
 };
 
-ö…DVsE           iÇHÒ»‚ÿÿÿÿ       :about:home alt-data 1;11847,script version 20250826121415  0ý
+Ã¬ÆSö+           i\HÔZåÿÿÿÿ       :about:home alt-data 1;11847,script version 20250826121415  0ý
