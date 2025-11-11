@@ -1,7 +1,7 @@
 # Trust Service
 
 Questo servizio **calcola un punteggio di fiducia dinamico** (Trust Score) per ogni utente, combinando:
-1) una **baseline** (es. 80) e  
+1) una **baseline**  
 2) gli **eventi recenti** osservati nei log (via Splunk), pesati nel tempo con un decadimento esponenziale.
 
 Il Trust Score risultante (0–100) viene esposto via API REST ed è pensato per essere interrogato da **OPA** (Policy Decision Point) e **Envoy** (Policy Enforcement Point) per prendere decisioni **ALLOW/DENY** in tempo reale.
@@ -42,22 +42,51 @@ Il Trust Score risultante (0–100) viene esposto via API REST ed è pensato per
 
 ---
 
-## Formula (riassunto)
-Per ogni evento *i* con impatto `I_i` e “età” `t_i` (in minuti) si usa un peso
-```
-W(t_i) = exp(- t_i / T)
-```
-Il punteggio è:
-```
-TS(u) = TS0(u) + Σ [ I_i · W(t_i) ]
-```
+## Trust Score
+Il **Trust Score** di un utente (TSu) è un indice dinamico che rappresenta il livello di fiducia corrente, calcolato sulla base degli eventi di sicurezza che lo riguardano. Questo approccio rende il sistema **Zero Trust** più adattivo, premiando comportamenti sicuri e penalizzando quelli sospetti.
+
+$$TS_u = TS_0 + \sum_{i=1}^N I_i \cdot W(t_i)$$
+
+**Significato dei termini:**
+- **$TS_0$** : Trust Score iniziale 
+- **$I_i$** : Impatto dell’evento *i-esimo*  
+- **$t_i$** : Tempo trascorso dall’evento *i-esimo* fino ad ora (in minuti)
+- **$W(t_i)$** : Funzione di decadimento temporale che pesa l’evento in base alla sua "vecchiaia".    
 Dopo la somma, lo score è **clippato** a `[0, 100]`.
 
+
+---
+
+### Funzione di decadimento temporale $W(t)$
+
+Per dare meno peso agli eventi più vecchi si utilizza una funzione **esponenziale decrescente**:
+
+$$W(t) = e^{-\frac{t}{T}}$$
+
+Gli eventi sospetti o positivi perdono influenza col tempo, riducendo falsi positivi dovuti a vecchie anomalie. Il sistema “perdona” un utente se nel tempo non ripete comportamenti rischiosi.  
+
+- **$t$** : tempo trascorso dall’evento (in minuti)
+- **$T$** : costante di scala temporale  
+  *(es. T = 1440 equivale a 1 giorno)*
+
+**Comportamento:**
+- Eventi recenti → $W(t) \approx 1$ → hanno **maggiore peso**
+- Eventi vecchi → $W(t) \to 0$ → hanno **minore influenza**
+
+
+## Eventi
+
+Gli eventi pensati sono i seguenti (possibile aggiunta)
+- Login_success → +5
+- Login_failed  → -4
+- Login_off_hour → -2
+- Login_failed_strick3  → -30
+
 Parametri tipici (configurabili in `scoring.py`):
-- `TS0` (baseline) utente (default es. 80)
+- `TS0` (baseline) utente (default es. 70)
 - `T_SCALE_MINUTES` (es. 1440 = 1 giorno)
-- `EARLIEST`, `LATEST` (finestra temporale Splunk, es. `-24h`/`now`)
-- Mapping impatti (es. `login_failed=-10`, `login_success=+5`)
+- `EARLIEST`, `LATEST` (finestra temporale Splunk, es. `-24h`/`now` ma idealmente `null`/`now` )
+- Mapping impatti
 
 ---
 
@@ -103,7 +132,7 @@ Parametri tipici (configurabili in `scoring.py`):
 
 ---
 
-## Variabili d’ambiente (tipiche)
+## Variabili d’ambiente
 Metti in `.env` o nel `docker-compose.yml` del servizio (valori di esempio):
 ```
 SPLUNK_HOST=splunk
@@ -141,29 +170,10 @@ curl -fsS http://trust-service:5000/score_dynamic/mrossi | jq .
 
 ---
 
-## Come estendere
-- **Nuovi eventi**: aggiungi `event → impact` in `scoring.py`.  
-- **Baselines per-ruolo/utente**: implementa lookup in `get_baseline_for(user)` (DB o mapping).  
-- **Più fonti**: basta che i log arrivino in Splunk con campi `sourcetype`, `event`, `user`, `_time`.
-
----
-
-## Integrazione con OPA/Envoy (a grandi linee)
+## Integrazione con OPA/Envoy
 1. Envoy effettua ext_authz → OPA.  
 2. OPA (Rego) chiama `http.send` verso `http://trust-service:5000/score_dynamic/<user>`.  
 3. Valuta `result.score` contro le policy (soglie/condizioni).  
-4. Ritorna `allow/deny`, eventuali **obblighi** (es. “richiedi MFA”).
+4. Ritorna `allow/deny` e il `livello di accesso`
 
 > La forma dell’endpoint e del JSON è **stabile** per non rompere le Rego.
-
----
-
-## Requisiti
-- Python 3.10+  
-- Dipendenze in `requirements.txt` (Flask, requests, ecc.)  
-- Accesso di rete a Splunk (porta management 8089 o quella configurata).
-
----
-
-## Licenza
-Uso accademico/didattico. Aggiungi la tua licenza se necessario.
