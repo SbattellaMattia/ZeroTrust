@@ -228,7 +228,8 @@ Abbiamo rimosso alcuni container per semplificare l’architettura e ottimizzare
 
 
 ---
-
+## Esempio pratico
+https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09
 ## Logging
 
 **Logging / monitoring:** Tutti i passaggi devono essere loggati in modo da poter essere monitorati da `Snort`, `Fluentd` e `Splunk`. 
