@@ -3,7 +3,7 @@
 ## Introduzione
 Questo progetto universitario per il corso di laurea in Ing. Informatica ed Automazione Univpm (corso di Advanced Cyber Security for IT) è una simulazione di un'infrastruttura **Zero Trust** containerizzata con Docker. L'obiettivo è mostrare un'architettura semplice ma realistica che include: firewall (nftables), bastion host, keycloak (Identity Provider), PEP (Envoy), PDP (OPA), Trust Service per calcolo dinamico della fiducia, Squid (forward proxy), servizi interni (un web service, produzione, sviluppo), oltre a strumenti di monitoring/IDS (Snort) e raccolta log (Splunk).
 
-<img width="1229" height="818" alt="image" src="https://github.com/user-attachments/assets/48818cd9-a5b0-4284-b176-95e05ae5064b" />
+<img width="1287" height="860" alt="architettura" src="https://github.com/user-attachments/assets/13ae9e74-b6b6-4c67-819e-f6f01b216536" />
 
 
 ### Contesto
@@ -105,126 +105,41 @@ Abbiamo rimosso alcuni container per semplificare l’architettura e ottimizzare
 ### Legenda
 🔴 Rosso: richiesta applicativa dall’esterno verso il servizio interno.  
 🟢 Verde: ciclo di autenticazione tra PEP e Keycloak (redirect/login/ritorno).  
-🔵 Blu: valutazione autorizzativa tra PEP, PDP, Trust Service e DB.
+🔵 Blu: valutazione autorizzativa tra PEP, PDP, Trust Service e Splunk.
 
 
 ### 1) External → Internal
 **Percorso logico:**
 
-<img width="1473" height="800" alt="image" src="https://github.com/user-attachments/assets/b2e11386-df01-486e-a0c7-f595641995e2" />
+<img width="1244" height="746" alt="external-internal" src="https://github.com/user-attachments/assets/e1fd416f-a0c9-47dc-b244-cc3e8c920a5c" />
 
 **Step:**
-
-1) Ingresso dalla rete esterna
-
-- Il client EXT invia una richiesta verso il servizio pubblicato; il traffico entra in DMZ e passa dal Firewall secondo regole restrittive.
-- Colore: rosso.
-
-2) Intercetto al PEP
-
-- La richiesta raggiunge il PEP (Envoy), che è l’unico front‑end verso il servizio interno.
-- Colore: rosso.
-
-3) Verifica sessione e autenticazione
-
-- Se non esiste una sessione valida, il PEP avvia il ciclo OIDC reindirizzando l’utente a Keycloak per il login; al termine dell’autenticazione, l’utente ritorna al PEP con prova d’identità.
-- Colore: verde (PEP ↔ Keycloak ↔ PEP).
-
-4) Preparazione della decisione
-
-- Con identità e contesto disponibili, il PEP costruisce la richiesta di autorizzazione e la invia al PDP (OPA) per la valutazione.
-- Colore: blu (PEP → PDP).
-
-5) Calcolo del trust score
-
-- Il PDP interroga il Trust Service per ottenere il trust score dell’utente; il Trust Service consulta/aggiorna il DB (Postgres) con lo storico degli eventi.
-- Colore: blu (PDP ↔ Trust Service ↔ DB).
-
-6) Decisione di policy
-
-- Il PDP applica le regole (identità, ruolo, risorsa richiesta, azione, rete/ambiente, trust score) e restituisce al PEP un verdetto ALLOW o DENY.
-- Colore: blu (PDP → PEP).
-
-7) Inoltro o blocco verso il servizio
-
-- Se ALLOW, il PEP inoltra la richiesta all’Internal Web Service e restituisce la risposta al client attraverso lo stesso percorso di ritorno; se DENY, risponde con codice di errore (es. 403).
-- Colori: rosso per l’inoltro verso il servizio; risposta sul percorso inverso.
+Un client esterno raggiunge il PEP (Envoy) esposto verso Internet, che instrada la richiesta verso il servizio web interno se i controlli superano l’autenticazione e l’autorizzazione.​
+L’identità è gestita tramite Keycloak collegato al PEP, mentre le decisioni di policy passano tramite Trust Service per il calcolo del punteggio di fiducia e PDP (OPA) che applica le policy.
+Inoltre il Pep fa da firewall L3 controllando che l'ip non sia in blacklist. Alla fine la richiesta viene instradata verso il server interno.
 
 ---
 
 ### 2) Internal → External
 **Percorso logico:**
 
-<img width="1467" height="799" alt="image" src="https://github.com/user-attachments/assets/a1ff7bd3-c993-455e-b373-c8b39a4bc8e4" />
-
-
+<img width="1231" height="753" alt="internal-external" src="https://github.com/user-attachments/assets/a6459b21-5adf-4753-95af-c45831f08625" />
 
 **Step:**
-
-1) Origine della richiesta
-
-- Un host interno (Prod o Dev) avvia una connessione verso una destinazione esterna; il traffico è instradato verso il PEP, eliminando fiducia implicita tra segmenti.
-
-2) Intercetto e preparazione
-
-- Il PEP riceve la richiesta e raccoglie il contesto minimo necessario: identità/ruolo del chiamante, rete/ambiente di provenienza, destinazione e tipo di operazione.
-- Colore: inizio Rosso fino al PEP.
-
-3) Decisione di policy
-
-- Il PEP chiede una valutazione al PDP (OPA), fornendo gli attributi della richiesta.
-- Colore: Blu (PEP → PDP).
-
-4) Trust score
-
-- Il PDP ottiene dal Trust Service il punteggio di fiducia aggiornato; il Trust Service consulta/aggiorna il DB con lo storico rilevante.
-- Colore: Blu (PDP ↔ Trust Service ↔ DB).
-
-5) Verdetto
-
-- Il PDP applica le regole (least‑privilege, categorie di destinazione, orari, contesto) e restituisce ALLOW/DENY al PEP.
-- Colore: Blu (PDP → PEP).
-
-6) Uscita controllata
-
-- Se ALLOW, il PEP inoltra la richiesta verso Squid nella DMZ; il firewall consente l’uscita in Internet solo dal proxy. In caso di DENY, il PEP blocca e notifica l’errore al chiamante.
-- Colore: Rosso (PEP → Squid → Firewall → EXT).
+Un client interno raggiunge il PEP (Envoy), che instrada la richiesta verso il servizio web interno se i controlli superano l’autenticazione e l’autorizzazione che vengono comunque effettuate nonostante la risorsa sia interna.​
+L’identità è gestita tramite Keycloak collegato al PEP, mentre le decisioni di policy passano tramite Trust Service per il calcolo del punteggio di fiducia e PDP (OPA) che applica le policy.
+Inoltre il Pep fa da firewall L7 controllando che il determinato url non sia in blacklist. Alla fine la richiesta viene instradata verso il server selezionato.
 
 ---
 
 ### 3) Internal → Internal
 **Percorso logico:**
 
-<img width="1486" height="797" alt="image" src="https://github.com/user-attachments/assets/bf3a66c9-6f7b-4891-ac62-1671c1e9868c" />
+<img width="1249" height="748" alt="internal-internal" src="https://github.com/user-attachments/assets/1e47bf54-356e-437f-b9ef-04bed06cacf9" />
 
-> In questo scenario si assume che l’utente, operando da una macchina aziendale, abbia già effettuato l’autenticazione tramite il software preinstallato; di conseguenza, l’accesso al servizio avviene sfruttando la sessione aziendale esistente, senza eseguire nuovamente il login né passare dal flusso interattivo di Keycloak.
 
 **Step**
-
-1) Origine della richiesta
-
-- Un host interno (Prod o Dev) richiede una risorsa esposta dall’Internal Web Service; il traffico è instradato verso il PEP, evitando fiducia implicita tra segmenti.
-
-2) Intercetto al PEP
-
-- Il PEP riceve la richiesta e verifica l’esistenza di una sessione/identità valida (leggere nota sotto l'immagine);
-- Ottenuti identità e contesto (ruolo, rete/ambiente di provenienza, endpoint e metodo), il PEP chiede al PDP la valutazione della richiesta.
-- Colore: Blu (PEP → PDP).
-
-3) Calcolo del trust score
-
-- Il PDP acquisisce dal Trust Service il punteggio di fiducia aggiornato, con consultazione/aggiornamento del DB per lo storico.
-- Colore: Blu (PDP ↔ Trust Service ↔ DB).
-
-5) Applicazione delle policy
-
-- Il PDP applica regole che differenziano ambienti e ruoli.
-- Colore: Blu (PDP → PEP).
-
-6) Esito ed inoltro
-
-- Se ALLOW, il PEP inoltra la richiesta all’Internal Web Service e instrada la risposta di ritorno verso l’host sorgente; se DENY, risponde con errore.
-- Colore: Rosso (PEP ↔ Internal Web Service ↔ host interno).
+Anche in questo scenario il procedimento è analogo, poichè non viene considerata la fiducia implicita, cardine delle architetture Zerotrust.
 
 
 ---
@@ -238,45 +153,5 @@ Abbiamo rimosso alcuni container per semplificare l’architettura e ottimizzare
 > Nota: Snort è configurato solo in modalità IDS. Ha accesso a tutte le reti (`internal_net`, `dmz_net`, `prod_net`, `dev_net`) in modo da poter analizzare il traffico entrante ed uscente.
 
  
-## Trust Score
-Il **Trust Score** di un utente (TSu) è un indice dinamico che rappresenta il livello di fiducia corrente, calcolato sulla base degli eventi di sicurezza che lo riguardano. Questo approccio rende il sistema **Zero Trust** più adattivo, premiando comportamenti sicuri e penalizzando quelli sospetti.
 
-$$TS_u = TS_0 + \sum_{i=1}^N I_i \cdot W(t_i)$$
-
-**Significato dei termini:**
-- **$TS_0$** : Trust Score iniziale (es. 80)
-- **$I_i$** : Impatto dell’evento *i-esimo*  
-  *(esempi: -10 per login da IP sconosciuto, +5 per autenticazione MFA riuscita)*
-- **$t_i$** : Tempo trascorso dall’evento *i-esimo* fino ad ora (in minuti)
-- **$W(t_i)$** : Funzione di decadimento temporale che pesa l’evento in base alla sua "vecchiaia"
-
----
-
-### Funzione di decadimento temporale $W(t)$
-
-Per dare meno peso agli eventi più vecchi si utilizza una funzione **esponenziale decrescente**:
-
-$$W(t) = e^{-\frac{t}{T}}$$
-
-Gli eventi sospetti o positivi perdono influenza col tempo, riducendo falsi positivi dovuti a vecchie anomalie. Il sistema “perdona” un utente se nel tempo non ripete comportamenti rischiosi.  
-
-- **$t$** : tempo trascorso dall’evento (in minuti)
-- **$T$** : costante di scala temporale  
-  *(es. T = 1440 equivale a 1 giorno)*
-
-**Comportamento:**
-- Eventi recenti → $W(t) \approx 1$ → hanno **maggiore peso**
-- Eventi vecchi → $W(t) \to 0$ → hanno **minore influenza**
-
----
-
-## Eventi che influenzano il Trust Score
-
-*(Sezione da completare — qui verranno elencati e classificati gli eventi che aumentano o diminuiscono il Trust Score, con il loro impatto numerico `Iᵢ`.)*
-
-Esempi preliminari:
-- Login da IP sconosciuto → -10
-- Autenticazione MFA riuscita → +5
-- Tentativo di accesso fallito multiplo → -15
-- Accesso da dispositivo registrato → +8
 
