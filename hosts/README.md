@@ -1,50 +1,16 @@
 # Host interni
 
-<img width="712" height="491" alt="Immagine 2025-09-19 023041" src="https://github.com/user-attachments/assets/e53f35e1-4ed0-4bb4-ac4f-d3848a375ce8" />
+Nella simulazione sono stati considerati due host a modello didattico, rappresentanti rispettivamente un PC del reparto sviluppo (**HOST DEV**) e uno del reparto produzione (**HOST PROD**). I due host appartengono a reti distinte, `dev_net` e `prod_net`, per riprodurre la separazione tra ambienti di test/sviluppo ed ambienti di produzione tipica delle reti aziendali.
 
-Nella simulazione dell’azienda sono stati considerati due host a **modello didattico**, rappresentanti rispettivamente un PC del reparto **sviluppo** e uno del reparto **produzione**. Ogni host appartiene a una rete separata, denominata `dev_net`: e `prod_net`, per simulare la segmentazione tipica delle reti aziendali.
+<img width="1020" height="769" alt="host-interni" src="https://github.com/user-attachments/assets/49c2e9e8-c30c-4e96-aab0-5301dabc1a4e" />
 
-Essendo un modello didattico, si è semplificato il processo di autenticazione: si assume che ogni PC sia già associato a un **utente autenticato**, e che contenga tutte le informazioni rilevanti (identità, ruolo, rete, device, ecc.) necessarie al **PDP** per applicare le proprie policy di sicurezza. In altre parole, il computer stesso funge da “proxy” dell’utente, senza dover simulare il software di login reale.
+>Nota: nell'immagine è stato omesso il flusso di autenticazione. Questo viene effettuato indistintamente dalla rete dalla quale ha origine la richiesta, ogni qual volta il pep non trova dei cookie di sessione validi. 
 
-Seguendo i principi della **security policy Zero Trust**, ogni richiesta (anche se proviene dall’interno della rete aziendale) deve essere considerata potenzialmente non sicura e quindi **verificata dal PEP (Policy Enforcement Point)**. Per questo motivo, i due host devono comunicare **esclusivamente con il PEP Envoy**, che applica le regole di controllo, legge i metadati forniti dagli host e decide se consentire o bloccare la richiesta.
+Seguendo i principi della security policy Zero Trust, anche il traffico proveniente da queste reti interne non viene considerato automaticamente affidabile: le richieste generate dagli host devono sempre passare attraverso il **PEP (Policy Enforcement Point)** collocato nella **Dmz Net**, che è l’unico punto autorizzato a dialogare sia con l’**INTERNAL WEB SERVICE** sia con i server esterni (distinti in **ALLOWED SERVER** e **BLOCKED SERVER** nella **External Net**). In particolare il **BLOCKED SERVER** è stato pensato come server non raggiungibile dall'interno della rete aziendale per evidenziare le funzionalità del `pep-envoy` di operare come un firewall L7.
 
-## Struttura del progetto
-
-- **headers.map**: contiene la lista dei parametri/variabili da aggiungere alle richieste (es. utente, rete, ruolo, device). Permette di **aggiungere o rimuovere parametri facilmente**, senza modificare lo script del wrapper.  
-- **curl-wrapper.sh**: legge le variabili dal file e le trasforma in header HTTP inviati a ogni richiesta.  
-- **entrypoint.sh**: inizializza le variabili proxy e avvia il container.  
-
----
 
 ## Funzionamento
 
-1. Gli host (`host_sviluppo` e `host_produzione`) inviano tutte le richieste HTTP/HTTPS **attraverso il PEP**.  
-   - Questo è simulato usando le variabili d’ambiente `HTTP_PROXY` e `HTTPS_PROXY`.  
-   - In una rete reale, il filtraggio sarebbe fatto da un **router o firewall aziendale**; qui, per semplicità, il proxy è nel container.
+Gli host (HOST DEV e HOST PROD) inviano tutte le richieste HTTP/HTTPS attraversando il PEP Envoy. Dal punto di vista del progetto, questo comportamento è ottenuto configurando il browser in modo che utilizzi sempre il PEP come proxy per le connessioni web.
 
-2. Le richieste includono automaticamente header importanti, come:  
-   - `X-User-Id`, `X-Network`, `X-Role`, `X-Device-Id`  
-   - Il PEP può leggere questi header e passarli al PDP per prendere decisioni di autorizzazione.
-
-3. Il file **headers.map** rende il sistema **modulare**: basta aggiungere nuove righe per aggiungere parametri alle richieste.
-
----
-
-## Test rapido
-
-<img width="648" height="467" alt="image" src="https://github.com/user-attachments/assets/90d2ad77-76fd-4972-bbb6-7b1c216bc7cc" />
-
-
-- Avvio dei container: `docker-compose up --build -d`  
-- Accesso al container sviluppo: `docker exec -it host_sviluppo bash`  
-- Esecuzione di una richiesta verso il servizio interno: `curl -v http://localhost:8080`   
-- Il wrapper aggiunge automaticamente tutti gli header definiti in **headers.map**, e anche se non interroghiamo il pep e non il servizio, ci risponde `envoy`. 
-
-> Nota: Come possiamo notare, pur interrogando il servizio interno, ci risponde envoy (negandoci momentaneamente l'accesso a causa della configurazione momentanea dei punteggi nel db)
----
-
-## Note di progetto
-- **Scopo didattico**: l’architettura serve a simulare scenari di sicurezza e policy enforcement in un contesto controllato, senza riprodurre la complessità del software reale di autenticazione e filtraggio.  
-- **Proxy nel container**: in una rete aziendale reale, le regole sarebbero applicate a livello di **router o firewall**, non direttamente nei PC. Nella simulazione, il proxy è dentro il container per semplicità. 
-- **Passare dati sensibili tramite gli header HTTP non è sicuro**: in una rete reale potrebbero essere facilmente falsificati o intercettati.  
-
+Questa configurazione è gestita a livello di profilo del browser tramite un file **`user.js`** incluso nel pacchetto degli host. Il `user.js` imposta un proxy manuale puntato al PEP per tutto il traffico HTTP/HTTPS: quando l’utente utilizza il browser dagli host DEV o PROD, le connessioni non raggiungono direttamente il servizio interno o i server esterni, ma vengono automaticamente inviate al PEP, che applica le policy e decide se consentire, inoltrare o bloccare la richiesta.
