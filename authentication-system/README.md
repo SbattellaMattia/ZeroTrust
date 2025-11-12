@@ -1,5 +1,4 @@
-# Keycloak come Identity Provider
-<img  alt="image" src="https://github.com/user-attachments/assets/c70e1a39-b3da-4dc6-a00e-f83a95992356" />
+<img  width="300" height="368" alt="image" src="https://github.com/user-attachments/assets/c70e1a39-b3da-4dc6-a00e-f83a95992356" />
 
 
 Keycloak è un sistema open-source di Identity and Access Management che consente di centralizzare la gestione dell'autenticazione e degli accessi in modo scalabile e sicuro. Nel contesto di questo progetto, Keycloak assume il ruolo di Identity Provider (IdP), fungendo da punto centrale di autenticazione all'interno di un'architettura Zero Trust.
@@ -33,7 +32,7 @@ Nel contesto di questo progetto, Keycloak agisce come **OpenID Provider**, emett
 
 ## Architettura
 
-<img width="1008" height="368" alt="image" src="https://github.com/user-attachments/assets/b699d6e3-5d3a-463f-9281-ca2aa4697c68" />
+<img width="1322" height="477" alt="image" src="https://github.com/user-attachments/assets/ccc7c9b4-3e54-41e6-bcc0-3e9830d0c6ee" />
 
 
 L'implementazione adotta il principio della **separazione delle responsabilità** (Separation of Concerns), che rappresenta uno dei fondamenti dello sviluppo software moderno e delle architetture Zero Trust. In questo contesto, la logica di autenticazione e quella di autorizzazione sono state deliberatamente disaccoppiate per garantire maggiore modularità, sicurezza e manutenibilità del sistema.
@@ -137,3 +136,18 @@ Il file `oauth-hmac-secret.yaml` contiene la **chiave HMAC** utilizzata da Envoy
 - **Validazione dello stato di sessione**: verifica che i cookie presentati dal browser siano stati effettivamente generati da Envoy e non siano stati contraffatti
 - **Protezione contro CSRF**: quando combinato con meccanismi anti-CSRF, impedisce attacchi di tipo Cross-Site Request Forgery
 - **Encoding delle URL nei callback**: Envoy utilizza questa chiave anche per codificare parametri nelle URL di redirect durante il flusso OAuth2
+
+### Certificato self-signed per il PEP
+
+Per generare rapidamente una coppia chiave/certificato self‑signed da usare nel PEP, esegui i comandi seguenti e referenzia i file risultanti nel configuration file di Envoy/PEP.
+
+```bash
+# 1) Genera chiave privata e certificato X.509 con SAN per hostname e/o IP
+openssl req -x509 -nodes -newkey rsa:2048 -sha256 -days 365 \
+  -keyout pep.key -out pep.crt \
+  -subj "/CN=pep-envoy" \
+
+# 3) (Opzionale) Verifica contenuto certificato
+openssl x509 -in pep.crt -noout -text
+```
+⚠️ Incolla i seguenti certificati poi nel `pep-envoy` nella cartella `authorization-system/envoy/secrets/cert/`
