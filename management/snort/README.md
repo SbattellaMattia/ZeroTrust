@@ -1,4 +1,5 @@
-#  Snort — Intrusion Detection System (IDS)
+#  Snort — Intrusion Detection System (IDS) <img width="120" height="350" alt="image" src="https://github.com/user-attachments/assets/8b4226f2-7689-4067-8e03-f08b046f018b" />
+
 
 ##  Descrizione generale
 
@@ -49,12 +50,13 @@ In questo scenario:
 ### 1. Output Nmap (macchina sorgente)
 
 La seguente immagine mostra l’esecuzione del comando:
-
-![Output Nmap](nmap.png)
-
 ```bash
 sudo docker exec debug nmap -sX pep-envoy
 ```
+
+
+<img width="1154" height="405" alt="nmap" src="https://github.com/user-attachments/assets/f29aa461-8c7c-4bcd-aba1-a99c6a1898a2" />
+
 
 Il risultato mostra diverse porte TCP aperte o filtrate — un comportamento tipico dei sistemi che rispondono parzialmente ai pacchetti “Xmas”, utilizzati per individuare porte attive senza completare il classico handshake TCP.
 
@@ -64,7 +66,8 @@ Il risultato mostra diverse porte TCP aperte o filtrate — un comportamento tip
 La seconda immagine mostra il contenuto del log generato da **Snort IDS** in tempo reale.  
 
 
-![Log Snort](log_snort.jpeg)
+<img width="1121" height="754" alt="nmap_alert" src="https://github.com/user-attachments/assets/629d9f22-b91a-412f-9dc1-aef57d5848e1" />
+
 
 
 L’analizzatore, intercetta e registra più pacchetti di tipo **TCP Xmas Scan**, generando avvisi con priorità elevata.
@@ -86,11 +89,7 @@ Durante un test di connettività interno tra container, il sistema Snort IDS ha 
 Questo esempio dimostra la capacità di Snort di rilevare attività di rete apparentemente innocue ma potenzialmente utili a fini di ricognizione.
 
 ### 1. Output Ping (macchina sorgente)
-
-La seguente immagine mostra l’esecuzione del comando:
-
-![Output Ping](ping.png)
-
+In modo analogo a quanto fatto prima:
 ```bash
 docker exec -it debug sh
 ping pep-envoy
@@ -99,13 +98,7 @@ Il risultato mostra l'invio di pacchetti ICMP Echo Request verso pep-envoy.
 
 ### 2. Log Snort
 
-La seconda immagine mostra il contenuto del log generato da **Snort IDS** in tempo reale.  
-
-
-![Log Snort](log_snort2.png)
-
-
-L’analizzatore, ha intercettato pacchetti **Echo Reply** e ha generato automaticamente un alert nel file:
+Snort intercetta i pacchetti **Echo Reply** egenera automaticamente un alert nel file.
 Ogni evento contiene:
 
 - **Timestamp dell’analisi**  
@@ -114,4 +107,10 @@ Ogni evento contiene:
 - **Tipo ICMP:** `Type:0 (Echo Reply)`
 - **Descrizione:** `[ALERT] TCP Xmas Scan`
 
-Questo comportamento conferma che **Snort** è in grado di rilevare in modo preciso anche **pacchetti ICMP** standard
+Questo comportamento conferma che **Snort** è in grado di rilevare in modo preciso anche **pacchetti ICMP** standard.
+
+## Snort e Splunk
+Gli eventi generati da Snort sono raccolti e normalizzati da Fluentd, ed infine visualizzati in Splunk.
+<img width="1134" height="380" alt="splunk-snort" src="https://github.com/user-attachments/assets/5c092496-5fef-4fc0-b8f8-b053e22e19b4" />
+> Per maggiori dettagli visualizzare la sezione dedicata.
+
