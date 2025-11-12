@@ -1,6 +1,7 @@
 # External Clients
 
 Questa sezione include i **client esterni** utilizzati per testare il comportamento dell’architettura **Zero Trust** durante le connessioni provenienti da reti non fidate.
+<img width="1332" height="651" alt="image" src="https://github.com/user-attachments/assets/07aae75f-8080-44da-9329-41094044a1ea" />
 
 ---
 
