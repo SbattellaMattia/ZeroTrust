@@ -1,7 +1,7 @@
 # ZeroTrust
 
 ## Introduzione
-Questo progetto universitario per il corso di laurea in Ing. Informatica ed Automazione Univpm (corso di Advanced Cyber Security for IT) è una simulazione di un'infrastruttura **Zero Trust** containerizzata con Docker. L'obiettivo è mostrare un'architettura semplice ma realistica che include: firewall (nftables), bastion host, keycloak (Identity Provider), PEP (Envoy), PDP (OPA), Trust Service per calcolo dinamico della fiducia, Squid (forward proxy), servizi interni (un web service, produzione, sviluppo), oltre a strumenti di monitoring/IDS (Snort) e raccolta log (Splunk).
+Questo progetto universitario per il corso di laurea in Ing. Informatica ed Automazione Univpm (corso di Advanced Cyber Security for IT) è una simulazione di un'infrastruttura **Zero Trust** containerizzata con Docker. L'obiettivo è mostrare un'architettura semplice ma realistica che include: firewall (nftables incluso in Envoy), keycloak (Identity Provider), PEP (Envoy), PDP (OPA), Trust Service per calcolo dinamico della fiducia, servizi interni (un web service, produzione, sviluppo), oltre a strumenti di monitoring/IDS (Snort), raccolta e normalizzazione (Fluentd) e salvataggio per ricerche indicizzate dei logs (Splunk).
 
 <img width="1287" height="860" alt="architettura" src="https://github.com/user-attachments/assets/13ae9e74-b6b6-4c67-819e-f6f01b216536" />
 
@@ -118,6 +118,14 @@ Un client esterno raggiunge il PEP (Envoy) esposto verso Internet, che instrada 
 L’identità è gestita tramite Keycloak collegato al PEP, mentre le decisioni di policy passano tramite Trust Service per il calcolo del punteggio di fiducia e PDP (OPA) che applica le policy.
 Inoltre il Pep fa da firewall L3 controllando che l'ip non sia in blacklist. Alla fine la richiesta viene instradata verso il server interno.
 
+**Esempio allowed:**
+
+[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/c13589b6-6e3c-44f8-8dcf-e441ca9eb103)
+
+**Esempio blocked:**
+
+[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/a7a84e3a-67f2-466b-a30c-2b9f5bc60847)
+
 ---
 
 ### 2) Internal → External
@@ -130,6 +138,14 @@ Un client interno raggiunge il PEP (Envoy), che instrada la richiesta verso il s
 L’identità è gestita tramite Keycloak collegato al PEP, mentre le decisioni di policy passano tramite Trust Service per il calcolo del punteggio di fiducia e PDP (OPA) che applica le policy.
 Inoltre il Pep fa da firewall L7 controllando che il determinato url non sia in blacklist. Alla fine la richiesta viene instradata verso il server selezionato.
 
+**Esempio allowed:**
+
+[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/9110be5b-deea-40fc-a9ca-68949bce488d)
+
+**Esempio blocked:**
+
+[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/efc9a74d-8baa-4ef1-834c-3a5dffa4e08d)
+
 ---
 
 ### 3) Internal → Internal
@@ -141,10 +157,10 @@ Inoltre il Pep fa da firewall L7 controllando che il determinato url non sia in 
 **Step**
 Anche in questo scenario il procedimento è analogo, poichè non viene considerata la fiducia implicita, cardine delle architetture Zerotrust.
 
+[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/cada567c-c5a5-4a11-89ab-3c1ce5385d7e)
 
 ---
-## Esempio pratico
-[https://github.com/user-attachments/assets/12df6e4d-154c-47d0-b5bb-280de828da09](https://github.com/user-attachments/assets/4548e4cf-553d-4442-930d-c219e669e725)
+
 ## Logging
 
 **Logging / monitoring:** Tutti i passaggi devono essere loggati in modo da poter essere monitorati da `Snort`, `Fluentd` e `Splunk`. 
