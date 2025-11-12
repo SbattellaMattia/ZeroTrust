@@ -1,11 +1,12 @@
-# Auth System con Envoy + OPA + Trust Service + DB
+# Auth System con Envoy + OPA + Trust Service + Splunk
 
-L’architettura proposta si divide in  **PEP/PDP** (Policy Enforcement Point / Policy Decision Point) basata su **Envoy**, **OPA**, un **Trust Service** custom e un database **Postgres**.
+L’architettura proposta si divide in  **PEP/PDP** (Policy Enforcement Point / Policy Decision Point) basata su **Envoy**, **OPA**, un **Trust Service** custom e un SIEM **Splunk** che funge da database.
 
 ---
 
 ## Architettura
-<img width="993" height="165" alt="image" src="https://github.com/user-attachments/assets/07f2cd36-be9c-4e8f-9252-3ec979ce6a35" />
+<img width="1540" height="248" alt="autorizzazione" src="https://github.com/user-attachments/assets/893474ce-ea0f-4254-b801-dc55d4242efd" />
+
 
 
 - **Envoy Proxy (PEP)**  
@@ -15,10 +16,12 @@ L’architettura proposta si divide in  **PEP/PDP** (Policy Enforcement Point / 
   Policy Decision Point scritto in **Rego**. Decide se permettere o negare la richiesta in base allo *score* dell’utente ottenuto dal Trust Service.
 
 - **Trust Service**  
-  Servizio Python/Flask che espone un endpoint REST per restituire lo *score* di un utente (salvato nel DB).
+  Servizio Python/Flask che espone un endpoint REST per restituire lo *score* di un utente in base agli eventi presenti nel SIEM Splunk.
 
-- **Postgres (DB)**  
-  Database che contiene gli utenti e i loro trust score. L’init SQL viene montato al container per ricreare le tabelle all’avvio.
+- **Splunk**  
+  Contiene gli eventi di ogni container nella rete, compresi gli eventi relativi agli utenti, che attraverso bonus e malus definiscono il punteggio di fiducia.
+
+> Per comprendere meglio ogni singola parte vedere i readme dedicati.
 
 ---
 
@@ -27,21 +30,20 @@ L’architettura proposta si divide in  **PEP/PDP** (Policy Enforcement Point / 
 1. La richiesta HTTP arriva ad **Envoy**, momentaneamente non ci interessa sapere da dove proviene, l'importante è realizzare il flusso di comunicazione.
 2. Envoy intercetta la richiesta e attiva il filtro **ext_authz**.
 3. Il filtro comunica in **gRPC** con OPA. **gRPC** (Google Remote Procedure Call) è un protocollo basato su HTTP/2 che consente lo scambio efficiente di messaggi strutturati tra servizi (in questo caso Envoy ↔ OPA).
-4. OPA analizza la richiesta e applica le policy Rego chiamando il **Trust Service**, che comunica con **Postgres** per il calcolo della fiducia.  
+4. OPA analizza la richiesta e applica le policy Rego chiamando il **Trust Service**, che comunica con **Splunk** per il calcolo della fiducia.  
 5. Envoy risponde con **allow=true** (inoltra la richiesta al servizio interno), altrimenti con **deny** (restituisce `403 Forbidden`).
 
 
 ---
 
-## Esempio pratico
-Nell'init.sql del database abbiamo predisposto due semplici utenti:
+## Un primo esempio pratico
+> ⚠️ Questo esempio è stato uno dei primi realizzati. Pur essendo molto vecchio è stato mantenuto per far vedere come funziona a basso livello e come è stato implementato il flusso.
+
+
+Nel database abbiamo predisposto due semplici utenti:
 - `mrossi` con **score = 80**
 - `mrhacker` con **score = 10**
 
-Per prima cosa startiamo i container con:
-```bash
-docker compose up --build
-```
 Procediamo poi con i test, la sintassi simula una richiesta http, con la seguente sintassi:
 ```bash
 curl -v localhost:10000/users/profile/{nome}
@@ -69,8 +71,6 @@ Poiché `10 < 50`, OPA risponde con `allow=false` → Envoy blocca la richiesta 
 > **Nota**: La policy mostrata è puramente a scopo di test e dimostrativo.  
 > Le policy sviluppate in seguito sono molto più articolate e basate su calcoli e metriche avanzate.
 
-## Accorgimenti  
-  ⚠️ **Attenzione**: l’interpolazione delle variabili d'ambiente `${SERVICE_NAME}` e  `${SERVICE_PORT}` in `envoy.yaml` non sempre funziona. Nonostante ciò, essendo passate correttamente nel compose, non da alcun tipo di errore, ma scaturisce in una mancata comunicazione tra pep e pdp. È consigliato utilizzare direttamente il nome del container come host (es. `internal-service:8080`).
   
 ## Fonti e riferimenti
 
